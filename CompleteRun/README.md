@@ -26,9 +26,10 @@ conda --debug install cycler
 # So instead of trying to work that out, I figured at this point we don't need figures, 
 # and so I commented out all matplotlib references from the code.
 
-# Lastly, I had to remove transpose() from line 63 in optimize.py, and had to explicitly convert the output file name path to a string.
+# Lastly, I had to remove transpose() from line 63 in optimize.py, and 
+# had to explicitly convert the output file name path to a string.
 
 # It now all seems to work -- impressive job Peter!
 
-#########################################################################################################################################
+######################################################################################################################################
 
