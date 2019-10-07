@@ -1,5 +1,5 @@
 ### Experiences with getting this code to work
-### Wouter Meuleman -- WM20191006
+## Wouter Meuleman -- WM20191006
 
 From the current environment at Altius, which was mostly Tensorflow based, I had to install pyTorch first.
 The version recommended by Peter (0.4.1) by default works with CUDA 9.0.x, and unfortunately we only have/had
@@ -8,13 +8,19 @@ I could not immediately figure out how to force pip3 to install a pyTorch varian
 However, conda did seem to have that possibility, but asked for root privileges when trying to install system-wide.
 
 Luckily conda explicitly supports virtual environments, so I created a new virtual environment:
-`conda create -n SynthSeqs pip python=3.5.3`
+```
+conda create -n SynthSeqs pip python=3.5.3
+```
 
-Then, activated this:
-`source activate SynthSeqs`
+Then, activated this new environment:
+```
+source activate SynthSeqs
+```
 
 And then installed pyTorch in that environment, while explicitly requiring CUDA 8.0 hooks:
-`conda --debug install pytorch=0.4.1 cuda80 -c pytorch`
+```
+conda --debug install pytorch=0.4.1 cuda80 -c pytorch
+```
 
 I then added the `source activate SynthSeqs` line to the SLURM submission script, right before the python3 call.
 
