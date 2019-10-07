@@ -59,7 +59,6 @@ def one_hot_to_seq(one_hot):
     order_dict = {0:'A', 1:'T', 2:'C', 3:'G'}
     seq = ""
     idxs = np.argmax(one_hot, axis=1)
-    print(idxs)
     for elt in idxs:
         seq += order_dict[elt]
     return Seq(seq, single_letter_alphabet)
