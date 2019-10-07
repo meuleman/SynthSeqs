@@ -40,5 +40,4 @@ had to explicitly convert the output file name path to a string.
 
 It now all seems to work -- impressive job Peter!
 
-######################################################################################################################################
 
