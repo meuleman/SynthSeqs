@@ -181,6 +181,7 @@ class SequenceOptimizer():
 
     def init_dirs(self, c):
         save_paths = [
+            "seqs/initialized/nz{0}/",
             "seqs/progress/nz{0}/comp{1}/run{2}/",
             "seqs/optimized/nz{0}/comp{1}/run{2}/",
         ]
