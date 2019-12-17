@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from Bio import SeqIO
 
+DATA_DIR = 'data/'
+
 PATH_TO_REFERENCE_GENOME = \
     "/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa"
 
@@ -136,6 +138,19 @@ nmf_vectors = full_df.loc[:, 'C1':'C16'].values.astype(float)
 
 components = nmf_vectors.argmax(axis=1)
 
-print(one_hot_seqs)
-print(components)
-print(full_df.head())
+test_mask = full_df.seqname == 'chr1'
+validation_mask = full_df.seqname == 'chr2'
+
+idxs = {
+    'test' : np.where(test_mask)[0],
+    'validation' : np.where(validation_mask)[0],
+    'train' : np.where(~(test_mask | validation_mask)),
+}
+
+
+print('Saving sequences to {}'.format(DATA_DIR))
+for dset in ['test', 'validation', 'train']:
+    idx = idxs[dset]
+    print('{0} set: {1} sequences'.format(dset, len(idx)))
+    np.save('data/{}_seqs.npy'.format(dset), one_hot_seqs[idx])
+    np.save('data/{}_components.npy'.format(dset), components[idx])
