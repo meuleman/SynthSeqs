@@ -1,13 +1,110 @@
 import numpy as np
-#import matplotlib
-#matplotlib.use('agg')
-#from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use('agg')
+from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from Bio.Seq import Seq
 from Bio.Alphabet import single_letter_alphabet
 
+
+MOTIFS = [
+    "GCM1_GCM_1",
+    "IRF4_IRF_1",
+    "SPI1_ETS_1",
+    "MEF2A_MADS_1",
+    "MSC_bHLH_1",
+    "ERG_ETS_2",
+    "V_OCT4_01",
+    "NEUROD2_bHLH_1",
+    "HNF4A_nuclearreceptor_3",
+    "JDP2_bZIP_1",
+    "JDP2_bZIP_1",
+    "HNF1B_homeodomain_1",
+    "TP63_p53l_1",
+    "Foxl1_primary",
+    "PAX2_PAX_1",
+    "CTCF_C2H2_1",
+]
+
+ABBREV_MOTIFS = [
+    "GCM1",
+    "IRF",
+    "ETS/SPI1",
+    "MEF2",
+    "E-box",
+    "ETS/ERG",
+    "Oct-4",
+    "NeuroD/Olig",
+    "HNF4A",
+    "AP-1",
+    "AP-1",
+    "HNF1",
+    "TP63",
+    "FOX",
+    "PAX2",
+    "CTCF",
+]
+
+CANONICAL_ORDER = np.array([
+    7,
+    5,
+    15,
+    9,
+    12,
+    14,
+    3,
+    8,
+    13,
+    2,
+    4,
+    6,
+    16,
+    11,
+    10,
+    1,
+])
+
+COMPONENT_CLASS_NAMES = [
+    "placenta",
+    "lymphoid",
+    "HSC/myeloid/erythroid",
+    "cardiac",
+    "musculoskeletal",
+    "vascular/endothelial",
+    "embryonic",
+    "neuronal",
+    "digestive",
+    "fibroblast1",
+    "fibroblast2",
+    "epithelial/kidney(cancer)",
+    "epithelial",
+    "fetal lung",
+    "fetal kidney",
+    "tissue-invariant",
+]
+
+DHS_COLORS = np.array([
+    [195,195,195],
+    [187,45,212],
+    [5,193,217],
+    [122,0,255],
+    [254,129,2],
+    [74,104,118],
+    [255,229,0],
+    [4,103,253],
+    [7,175,0],
+    [105,33,8],
+    [185,70,29],
+    [76,125,20],
+    [0,149,136],
+    [65,70,19],
+    [255,0,0],
+    [8,36,91],
+]) / 255
+
+PATH_TO_MOTIF_MEMES = "/home/pbromley/generative_dhs/memes/new_memes/"
 
 def weights_init(m):
     classname = m.__class__.__name__
@@ -111,51 +208,16 @@ def save_imgs(G, bs, f_noise, it, path, one_dim=False):
     plt.close()
     G.train(True)
 
-def get_dhs_colors():
-    return np.array([[195,195,195],
-                     [187,45,212],
-                     [5,193,217],
-                     [122,0,255],
-                     [254,129,2],
-                     [74,104,118],
-                     [255,229,0],
-                     [4,103,253],
-                     [7,175,0],
-                     [105,33,8],
-                     [185,70,29],
-                     [76,125,20],
-                     [0,149,136],
-                     [65,70,19],
-                     [255,0,0],
-                     [8,36,91]])/255
-
-def get_order():
-    return np.array([7,5,15,9,12,14,3,8,13,2,4,6,16,11,10,1])
-
-def get_motifs():
-    return ["GCM1_GCM_1", "IRF4_IRF_1", "SPI1_ETS_1", "MEF2A_MADS_1",
-              "MSC_bHLH_1", "ERG_ETS_2", "V_OCT4_01", "NEUROD2_bHLH_1",
-              "HNF4A_nuclearreceptor_3", "JDP2_bZIP_1", "JDP2_bZIP_1", "HNF1B_homeodomain_1",
-              "TP63_p53l_1", "Foxl1_primary", "PAX2_PAX_1", "CTCF_C2H2_1"]
-
-def get_abbrev_motifs():
-    return ["GCM1", "IRF", "ETS/SPI1", "MEF2",
-              "E-box", "ETS/ERG", "Oct-4", "NeuroD/Olig",
-              "HNF4A", "AP-1", "AP-1", "HNF1",
-              "TP63", "FOX", "PAX2", "CTCF"]
-
-def get_component_class_names():
-    return ["placenta", "lymphoid", "HSC/myeloid/erythroid", "cardiac", "musculoskeletal",
-            "vascular/endothelial", "embryonic", "neuronal", "digestive", "fibroblast1",
-            "fibroblast2", "epithelial/kidney(cancer)", "epithelial", "fetal lung",
-            "fetal kidney", "tissue-invariant"]
+def get_motif(comp):
+    return MOTIFS[np.where(CANONICAL_ORDER == (comp+1))[0][0]]
 
 def get_motif_from_comp(comp, ext=True):
-    motif = get_motifs()[np.where(get_order() == (comp+1))[0][0]]
-    if ext:
-        return motif + ".txt"
-    else:
-        return motif
+    motif = get_motif(comp)
+    return motif + ".txt" if ext else motif
+
+def get_motif_mat(motif):
+    return np.loadtxt(PATH_TO_MOTIF_MEMES + motif)[:, np.array([0, 3, 1, 2])]
+
 
 class MotifMatch(nn.Module):
     def __init__(self, pwm, where=False):
@@ -166,9 +228,9 @@ class MotifMatch(nn.Module):
         self.where = where
 
     def forward(self, x):
-        seq = one_hot_to_seq(x.cpu().numpy().squeeze())
+        seq = one_hot_to_seq(x.numpy().squeeze())
         rc_seq = seq.reverse_complement()
-        rc_seq_one_hot = torch.FloatTensor(seq_to_one_hot(rc_seq).reshape(1, 1, x.size(2), x.size(3))).cuda()
+        rc_seq_one_hot = torch.FloatTensor(seq_to_one_hot(rc_seq).reshape(1, 1, x.size(2), x.size(3)))
         conv1 = F.conv2d(x, self.kernel, padding=(self.motif_length-1, 0))
         conv2 = F.conv2d(rc_seq_one_hot, self.kernel, padding=(self.motif_length-1, 0))
         conv = torch.cat([conv1, conv2], 2)
@@ -186,61 +248,17 @@ class MotifMatch(nn.Module):
         else:
             return out.squeeze()
 
-def get_motif_scan(x, comp):
+
+def get_motif_scan(one_hots, comp):
     motif = get_motif_from_comp(comp, ext=True)
-    motif_mat = np.loadtxt("/home/pbromley/generative_dhs/memes/new_memes/" + motif)[:, np.array([0, 3, 1, 2])]
-    m = MotifMatch(motif_mat).cuda()
-    motif_scan_arr = np.zeros(len(x))
-    for i in range(len(x)):
-        motif_scan_arr[i] = m(torch.FloatTensor(x[i].reshape(1, 1, 100, 4)).cuda()).item()
-    return motif_scan_arr
+    motif_mat = get_motif_mat(motif)
 
+    motif_match = MotifMatch(motif_mat)
 
-def get_motif_scan_from_meme(x, meme):
-    motif_mat = np.loadtxt("/home/pbromley/generative_dhs/memes/new_memes/meme_set/" + meme)[:, np.array([0, 3, 1, 2])]
-    m = MotifMatch(motif_mat).cuda()
-    motif_scan_arr = np.zeros(len(x))
-    for i in range(len(x)):
-        motif_scan_arr[i] = m(torch.FloatTensor(x[i].reshape(1, 1, 100, 4)).cuda()).item()
-    return motif_scan_arr
-
-
-class MotifMatchLong(nn.Module):
-    def __init__(self, pwm, where=False):
-        super(MotifMatchLong, self).__init__()
-        self.motif_length = pwm.shape[0]
-        kernel = pwm.reshape(1, 1, self.motif_length, 4)
-        self.kernel = nn.Parameter(data=torch.FloatTensor(kernel), requires_grad=False)
-        self.where = where
-
-    def forward(self, x):
-        seq = one_hot_to_seq(x.cpu().numpy().squeeze())
-        rc_seq = seq.reverse_complement()
-        rc_seq_one_hot = torch.FloatTensor(seq_to_one_hot(rc_seq).reshape(1, 1, x.size(2), x.size(3)))
-        conv1 = F.conv2d(x, self.kernel, padding=(self.motif_length-1, 0))
-        conv2 = F.conv2d(rc_seq_one_hot, self.kernel, padding=(self.motif_length-1, 0))
-        return conv1.detach().cpu().numpy(), conv2.detach().cpu().numpy()
-
-
-
-def get_rough_motif_ranges():
-    '''Extremely rough motif value ranges based on density plots, in 1-16 order NOT official'''
-    return np.array([[7.0, 9.0],
-                     [5.0, 7.0],
-                     [6.4, 8.5],
-                     [5.0, 5.0],
-                     [7.0, 9.0],
-                     [5.8, 8.0],
-                     [5.0, 6.5],
-                     [4.6, 6.0],
-                     [5.8, 8.0],
-                     [7.1, 9.0],
-                     [6.8, 9.0],
-                     [5.1, 7.0],
-                     [7.1, 9.5],
-                     [6.2, 8.1],
-                     [7.0, 9.4],
-                     [7.5, 10.2]])
+    return np.array([
+        motif_match(torch.FloatTensor(one_hot.reshape(1, 1, 100, 4))).item()
+        for one_hot in one_hots
+    ])
 
 
 def make_fixed_zs(nz, num_seqs, path, seed=None):
