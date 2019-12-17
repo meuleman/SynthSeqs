@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from Bio import SeqIO
+import utils
 
 DATA_DIR = 'data/'
 
@@ -144,7 +145,7 @@ validation_mask = full_df.seqname == 'chr2'
 idxs = {
     'test' : np.where(test_mask)[0],
     'validation' : np.where(validation_mask)[0],
-    'train' : np.where(~(test_mask | validation_mask)),
+    'train' : np.where(~(test_mask | validation_mask))[0],
 }
 
 
@@ -154,3 +155,5 @@ for dset in ['test', 'validation', 'train']:
     print('{0} set: {1} sequences'.format(dset, len(idx)))
     np.save('data/{}_seqs.npy'.format(dset), one_hot_seqs[idx])
     np.save('data/{}_components.npy'.format(dset), components[idx])
+
+full_df.to_csv(DATA_DIR + 'seq_ref.csv')
