@@ -150,5 +150,5 @@ def run(path, loss="hinge", one_dim=False, data_type="strong"):
 
 
 if __name__ == "__main__":
-    path = "/home/pbromley/generative_dhs/"
+    path = "/home/pbromley/generative_dhs/peterbromley/CompleteRun/"
     run(path, loss="hinge", one_dim=False, data_type="mean_signal")

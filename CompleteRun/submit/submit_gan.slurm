@@ -7,7 +7,7 @@
 #SBATCH --error=hi2.e
 #SBATCH --gres=gpu:p100
 #SBATCH --partition=gpu1
-#SBATCH --job-name=longer_nz
+#SBATCH --job-name=gan
 #
 # ==== Resource Requirements and Limits
 #SBATCH --ntasks=1
