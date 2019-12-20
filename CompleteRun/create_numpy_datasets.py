@@ -84,11 +84,12 @@ def get_sequence_bounds(row, half_length):
         r = row.summit + half_length + excess
     elif after < half_length:
         excess = half_length - after
-        l = row.summit - half_length - after
+        l = row.summit - half_length - excess 
         r = row.end
     else:
         l = row.summit - half_length
         r = row.summit + half_length
+    assert r - l == 100
     return l, r
 
 
