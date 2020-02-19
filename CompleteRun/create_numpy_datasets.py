@@ -227,13 +227,20 @@ cutoffs_large = {
 #            buff[i] = (proportion > cutoffs[c])
 #    return buff
 
+proportions = nmf_loadings.max(axis=1) / nmf_loadings.sum(axis=1)
+
+def create_full_mask(proportions, cutoffs, components, mask):
+    cutoffs_array = cutoffs[components]
+    proportion_mask = proportions > cutoffs_array
+    return proportion_mask and mask
+
 full_masks_small = {
-    label: create_full_mask(nmf_vectors, cutoffs_small[label], masks[label])
+    label: create_full_mask(proportions, cutoffs_small[label], components, masks[label])
     for label in dset_labels
 }
 
 full_masks_large = {
-    label: create_full_mask(nmf_vectors, cutoffs_large[label], masks[label])
+    label: create_full_mask(proportions, cutoffs_large[label], components, masks[label])
     for label in dset_labels
 }
 
