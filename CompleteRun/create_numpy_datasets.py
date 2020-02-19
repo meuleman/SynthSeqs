@@ -145,9 +145,9 @@ def get_sequence_strength_cutoffs(df, num_sequences):
     df['proportion'] = df.component_val / df.nmf_sum
 
     strongest = df.groupby('component')['proportion'].nlargest(num_sequences)
-
+    print(df.head(10))
     return {
-        c: strongest[c].min() for c in COMPONENT_COLUMNS
+        COMPONENT_COLUMNS_MAP[c]: strongest[c].min() for c in COMPONENT_COLUMNS
     }
 
 
@@ -161,9 +161,17 @@ FULL_DATAFRAME = get_combined_df(DHS_ANNOTATIONS_DF,
                                  MEAN_SIGNAL_THRESHOLD)
 
 
-seqs, full_df = get_sequences_and_trim(FULL_DATAFRAME, LENGTH)
+#seqs, full_df = get_sequences_and_trim(FULL_DATAFRAME, LENGTH)
 
-one_hot_seqs = np.array(list(map(utils.seq_to_one_hot, seqs)))
+#one_hot_seqs = np.array(list(map(utils.seq_to_one_hot, seqs)))
+
+#np.save('data/all_one_hot_seqs.npy', one_hot_seqs)
+#full_df.to_csv('data/full_df.csv')
+
+one_hot_seqs = np.load('data/all_one_hot_seqs.npy')
+full_df = pd.read_csv('data/full_df.csv')
+print(one_hot_seqs)
+print(full_df.head(10))
 
 nmf_vectors = full_df.loc[:, 'C1':'C16'].values.astype(float)
 
@@ -174,7 +182,7 @@ dset_labels = ['test', 'validation', 'train']
 masks = {}
 masks['test'] = (full_df.seqname == 'chr1')
 masks['validation'] = (full_df.seqname == 'chr2')
-masks['train'] = ~(test_mask | validation_mask)
+masks['train'] = ~(masks['test'] | masks['validation'])
 
 
 idxs = {
@@ -209,23 +217,23 @@ cutoffs_large = {
     for label, df in dfs.items()
 }
 
-def create_full_mask(nmf_loadings, cutoffs, mask):
-    buffer = np.zeros(len(nmf_loadings), dtype=bool)
-    for i in range(len(buffer)):
-        if mask[i]:
-            loading = nmf_loadings[i]
-            c = loading.argmax()
-            proportion = loading.max() / loading.sum()
-            buffer[i] = (proportion > cutoffs[c])
-    return buffer
+#def create_full_mask(nmf_loadings, cutoffs, mask):
+#    buff = np.zeros(len(nmf_loadings), dtype=bool)
+#    for i in range(len(buff)):
+#        if mask[i]:
+#            loading = nmf_loadings[i]
+#            c = loading.argmax()
+#            proportion = loading.max() / loading.sum()
+#            buff[i] = (proportion > cutoffs[c])
+#    return buff
 
 full_masks_small = {
-    label: create_full_mask(nmf_loadings, cutoffs_small, masks[label])
+    label: create_full_mask(nmf_vectors, cutoffs_small[label], masks[label])
     for label in dset_labels
 }
 
 full_masks_large = {
-    label: create_full_mask(nmf_loadings, cutoffs_large, masks[label])
+    label: create_full_mask(nmf_vectors, cutoffs_large[label], masks[label])
     for label in dset_labels
 }
 
