@@ -131,7 +131,7 @@ class tmp(nn.Module):
         )
 
     def forward(self, x):
-        h = self.net(x.view(-1, 4, 100)).view(-1, 512)
+        h = self.net(x.transpose(2, 3).squeeze()).view(-1, 512)
         out = self.fc_net(h)
         return out.squeeze()
 
@@ -141,9 +141,9 @@ class classifier_trainer():
     def __init__(self, epochs, bs, lr, b1=0.9, b2=0.999, drop=0.0):
         dataloaders = data_helper.get_the_dataloaders(bs, weighted_sample=True)
 
-        self.dataloader = dataloaders['train_seqs']
-        self.validation_dataloader = dataloaders['validation_seqs']
-        self.test_dataloader = dataloaders['test_seqs']
+        self.dataloader = dataloaders['train_seqs_classifier_large']
+        self.validation_dataloader = dataloaders['validation_seqs_classifier_large']
+        self.test_dataloader = dataloaders['test_seqs_classifier_large']
 
         self.model = tmp(drop).to("cuda") ##
         self.criterion = nn.CrossEntropyLoss().to("cuda")
@@ -217,11 +217,11 @@ class classifier_trainer():
         plt.close()
 
     def get_preds(self):
-        y_true = np.zeros(len(self.test_dataloader.dataset))
-        y_pred = np.zeros((len(self.test_dataloader.dataset), 16))
+        y_true = np.zeros(len(self.validation_dataloader.dataset))
+        y_pred = np.zeros((len(self.validation_dataloader.dataset), 16))
         self.model.eval()
         loss = 0
-        for i, batch in enumerate(self.test_dataloader):
+        for i, batch in enumerate(self.validation_dataloader):
             bs = batch[0].size()[0]
             y_true[i*bs:(i+1)*bs] = batch[1].numpy()
             pred = self.model(batch[0].float().to("cuda")).detach()
@@ -295,6 +295,6 @@ if __name__ == "__main__":
     #                print(trainer.train_hist_test[-1])
     
     #trainer = classifier_trainer(50, 256, 0.0018, b1=0.9, b2=0.99, drop=0.2, c=None)
-    trainer = classifier_trainer(50, 256, 0.0018, b1=0.9, b2=0.99, drop=0.2)
+    trainer = classifier_trainer(50, 256, 0.018, b1=0.9, b2=0.99, drop=0.2)
     model = trainer.train()
-    #torch.save(model.state_dict(), "/home/pbromley/generative_dhs/saved_models/classifiers/aug.pth")
+    torch.save(model.state_dict(), "/home/pbromley/SynthSeqs/CompleteRun/saved_models/classifiers/large.pth")
