@@ -76,12 +76,12 @@ def collate_variable_length(batch):
     #     y_train = y_train - 1       # raw component data goes from 1-15, want 0-14
     #     y_test = y_test - 1         # "       "       "    "    "    "     "    "
 
-X_TRAIN = 'train_seqs'
-X_VALIDATION = 'validation_seqs'
-X_TEST = 'test_seqs'
-Y_TRAIN = 'train_components'
-Y_VALIDATION = 'validation_components'
-Y_TEST = 'test_components'
+X_TRAIN = 'train_seqs_classifier_large'
+X_VALIDATION = 'validation_seqs_classifier_large'
+X_TEST = 'test_seqs_classifier_large'
+Y_TRAIN = 'train_components_classifier_large'
+Y_VALIDATION = 'validation_components_classifier_large'
+Y_TEST = 'test_components_classifier_large'
 
 X_DSETS = [
     X_TRAIN,

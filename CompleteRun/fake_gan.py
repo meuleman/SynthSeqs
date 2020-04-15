@@ -3,7 +3,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 import torchvision.datasets as dset
+import torch.optim as optim
 import gen_models
+import utils
 
 class FakeGCDataset(Dataset):
     """
@@ -61,6 +63,7 @@ def train(path, dataloader):
     fixed_noise = utils.create_fixed_inputs(40, NZ)
 
     train_hist = utils.initialize_train_hist()
+    dataiter = iter(dataloader)
 
     for iteration in range(N_ITERS):
         ## GENERATOR ##
@@ -69,9 +72,8 @@ def train(path, dataloader):
             noise.normal_(0, 1)
             fake = G(noise)
             pred_g = D(fake)
-            if loss == "hinge":
-                g_loss = -pred_g.mean()
-                g_loss.backward()
+            g_loss = -pred_g.mean()
+            g_loss.backward()
             optG.step()
 
         ## DISCRIMINATOR ##
@@ -89,11 +91,10 @@ def train(path, dataloader):
             fake = G(noise)
             pred_fake = D(fake.detach())
 
-            if loss == "hinge":
-                d_loss_real = torch.nn.ReLU()(1.0 - pred_real).mean()
-                d_loss_fake = torch.nn.ReLU()(1.0 + pred_fake).mean()
-                d_loss_total = d_loss_fake + d_loss_real
-                d_loss_total.backward()
+            d_loss_real = torch.nn.ReLU()(1.0 - pred_real).mean()
+            d_loss_fake = torch.nn.ReLU()(1.0 + pred_fake).mean()
+            d_loss_total = d_loss_fake + d_loss_real
+            d_loss_total.backward()
 
             optD.step()
 
@@ -105,7 +106,7 @@ def train(path, dataloader):
                                                              d_loss_total.item(),
                                                              g_loss.item()))
             img_path = path + "fake_data_experiment/"
-            utils.save_imgs(G, BS, fixed_noise, iteration, img_path, one_dim=one_dim)
+            utils.save_imgs(G, BS, fixed_noise, iteration, img_path)
 
     model_path = path + "fake_data_experiment/"
     torch.save(G.state_dict(), model_path + "g.pth")
@@ -114,6 +115,7 @@ def train(path, dataloader):
     utils.plot_loss(train_hist, lplot_path)
 
 
+path = "/home/pbromley/SynthSeqs/CompleteRun/"
 fake_data = np.load(path + 'fake_data_experiment/fake_data.npy')
 fake_data = fake_data.reshape(-1, 1, 100, 4)
 fake_dataset = FakeGCDataset(fake_data)
@@ -122,5 +124,4 @@ fake_dataloader = DataLoader(dataset=fake_dataset,
                              shuffle=True)
 
 
-path = "/home/pbromley/SynthSeqs/CompleteRun/"
 train(path, fake_dataloader)

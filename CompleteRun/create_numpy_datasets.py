@@ -145,10 +145,7 @@ def get_sequence_strength_cutoffs(df, num_sequences):
     df['proportion'] = df.component_val / df.nmf_sum
 
     strongest = df.groupby('component')['proportion'].nlargest(num_sequences)
-    print(df.head(10))
-    return {
-        COMPONENT_COLUMNS_MAP[c]: strongest[c].min() for c in COMPONENT_COLUMNS
-    }
+    return np.array([strongest[c].min() for c in COMPONENT_COLUMNS])
 
 
 
@@ -227,12 +224,15 @@ cutoffs_large = {
 #            buff[i] = (proportion > cutoffs[c])
 #    return buff
 
-proportions = nmf_loadings.max(axis=1) / nmf_loadings.sum(axis=1)
+proportions = nmf_vectors.max(axis=1) / nmf_vectors.sum(axis=1)
 
 def create_full_mask(proportions, cutoffs, components, mask):
     cutoffs_array = cutoffs[components]
-    proportion_mask = proportions > cutoffs_array
-    return proportion_mask and mask
+    proportion_mask = proportions >= cutoffs_array
+    return proportion_mask & mask
+
+
+print('Creating masks...')
 
 full_masks_small = {
     label: create_full_mask(proportions, cutoffs_small[label], components, masks[label])
@@ -244,6 +244,7 @@ full_masks_large = {
     for label in dset_labels
 }
 
+print('Finished creating masks')
 # print('Saving sequences to {}'.format(DATA_DIR))
 # for dset in dset_labels:
 #     idx = idxs[dset]
@@ -255,12 +256,14 @@ full_masks_large = {
 
 for label in dset_labels:
     idx = full_masks_small[label]
-    print('{0} set: {1} sequences'.format(label, len(idx)))
-    np.save('data/{}_seqs_classifier_small.npy'.format(label), one_hot_seqs[idx])
-    np.save('data/{}_components_classifier_small.npy'.format(label), components[idx])
+    print('{0} set: {1} sequences'.format(label, idx.sum()))
+    #np.save('data/{}_seqs_classifier_small.npy'.format(label), one_hot_seqs[idx])
+    #np.save('data/{}_components_classifier_small.npy'.format(label), components[idx])
+    np.save('data/{}_mask_classifier_small.npy'.format(label), idx)
 
 for label in dset_labels:
     idx = full_masks_large[label]
-    print('{0} set: {1} sequences'.format(label, len(idx)))
-    np.save('data/{}_seqs_classifier_large.npy'.format(label), one_hot_seqs[idx])
-    np.save('data/{}_components_classifier_large.npy'.format(label), components[idx])
+    print('{0} set: {1} sequences'.format(label, idx.sum()))
+    #np.save('data/{}_seqs_classifier_large.npy'.format(label), one_hot_seqs[idx])
+    #np.save('data/{}_components_classifier_large.npy'.format(label), components[idx])
+    np.save('data/{}_mask_classifier_large.npy'.format(label), idx)

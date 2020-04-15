@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 
 # Creates data with approx. 80% G/C content in the first and final 3rd, 20%
@@ -6,6 +8,7 @@ from matplotlib import pyplot as plt
 MORE = 0.4
 LESS = 0.1
 N_SEQS = 1000000
+PATH = '/home/pbromley/SynthSeqs/CompleteRun/'
 
 NUCLEOTIDE_MAP = {
     3: 'G',
@@ -31,7 +34,7 @@ plt.figure(figsize=(15, 10))
 for n in NUCLEOTIDE_MAP.values():
     plt.plot(range(100), freqs[n], label=n)
 plt.legend()
-plt.savefig('fake_data_experiment/fake_data_composition.png')
+plt.savefig(PATH + 'fake_data_experiment/fake_data_composition.png')
 
 def seq_to_one_hot(seq):
     x = np.zeros((len(seq), 4))
@@ -41,4 +44,4 @@ def seq_to_one_hot(seq):
 
 fake_data_one_hot = np.array([seq_to_one_hot(x) for x in full_fake_data])
 
-np.save('fake_data_experiment/fake_data.npy', fake_data_one_hot)
+np.save(PATH + 'fake_data_experiment/fake_data.npy', fake_data_one_hot)

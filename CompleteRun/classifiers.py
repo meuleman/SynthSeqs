@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 from sklearn.metrics import precision_recall_curve, average_precision_score, confusion_matrix
+from itertools import product
 
 FIGURES_PATH = "/home/pbromley/generative_dhs/peterbromley/CompleteRun/classifier_figures/"
 
@@ -103,12 +104,12 @@ class resnet_all(nn.Module):
 
 
 class tmp(nn.Module):
-    def __init__(self, drop=0.2):
+    def __init__(self, filters, pool_out, drop=0.2):
         super(tmp, self).__init__()
         self.net = nn.Sequential(
-            nn.Conv1d(4, 512, kernel_size=17, stride=1, padding=8),
+            nn.Conv1d(4, filters, kernel_size=17, stride=1, padding=8),
             nn.ReLU(True),
-            nn.BatchNorm1d(512),
+            nn.BatchNorm1d(filters),
             #resnet_block(100, 100, 5, spec_norm=False),
             #nn.Dropout(0.5),
             #resnet_block(100, 100, 5, spec_norm=False),
@@ -119,33 +120,35 @@ class tmp(nn.Module):
             #nn.Dropout(0.5),
             #resnet_block(100, 100, 5, spec_norm=False),
             #nn.Dropout(0.5),
-            nn.MaxPool1d(100)
+            nn.MaxPool1d(100 // pool_out)
         )
         self.fc_net = nn.Sequential(
-            nn.Linear(512, 100),
+            nn.Linear(filters * pool_out, 100),
             nn.ReLU(True),
             nn.Dropout(drop),
             nn.BatchNorm1d(100),
             nn.Linear(100, 16),
             nn.Softmax(dim=1)
         )
+        self.filters = filters
+        self.pool_out = pool_out
 
     def forward(self, x):
-        h = self.net(x.transpose(2, 3).squeeze()).view(-1, 512)
+        h = self.net(x.transpose(2, 3).squeeze()).view(-1, self.filters * self.pool_out)
         out = self.fc_net(h)
         return out.squeeze()
 
 
 
 class classifier_trainer():
-    def __init__(self, epochs, bs, lr, b1=0.9, b2=0.999, drop=0.0):
+    def __init__(self, epochs, bs, lr, filters, pool_out, b1=0.9, b2=0.999, drop=0.0):
         dataloaders = data_helper.get_the_dataloaders(bs, weighted_sample=True)
 
         self.dataloader = dataloaders['train_seqs_classifier_large']
         self.validation_dataloader = dataloaders['validation_seqs_classifier_large']
         self.test_dataloader = dataloaders['test_seqs_classifier_large']
 
-        self.model = tmp(drop).to("cuda") ##
+        self.model = tmp(filters, pool_out, drop=drop).to("cuda") ##
         self.criterion = nn.CrossEntropyLoss().to("cuda")
 
         self.opt = optim.Adam(self.model.parameters(), lr=lr, betas=(b1, b2))
@@ -162,10 +165,11 @@ class classifier_trainer():
         return acc
 
     def count_parameters(self):
+        pass
         #return print(p.numel() for p in self.model.parameters() if p.requires_grad)
-        for p in self.model.parameters():
-            if p.requires_grad:
-                print(p.numel())
+        #for p in self.model.parameters():
+            #if p.requires_grad:
+                #print(p.numel())
 
     def train(self):
         for epoch in range(self.epochs):
@@ -195,13 +199,13 @@ class classifier_trainer():
                     self.train_hist.append(loss.item())
                     ap = None
                     cm = self.confusion(y_true, y_pred)
-                    np.set_printoptions(precision=2, linewidth=100, suppress=True)
-                    print('Epoch: {0}, Iter: {1}, Loss: {2}, TestLoss: {3}, AP: {4}'.format(
-                          epoch, i, loss.item(), test_loss.item(), ap)
-                    )
-                    print('Confusion Matrix: ')
-                    print(cm)
-                    print("")
+                    #np.set_printoptions(precision=2, linewidth=100, suppress=True)
+                    #print('Epoch: {0}, Iter: {1}, Loss: {2}, TestLoss: {3}, AP: {4}'.format(
+                    #      epoch, i, loss.item(), test_loss.item(), ap)
+                    #)
+                    #print('Confusion Matrix: ')
+                    #print(cm)
+                    #print("")
                     if epoch == self.epochs-1:
                         np.save(FIGURES_PATH + "confusion.png", cm)
                     self.model.train(True)
@@ -280,7 +284,10 @@ if __name__ == "__main__":
     beta1s = np.arange(0.7, 0.9, 0.1)
     beta2s = np.arange(0.69, 1.0, 0.1)
     drops = np.arange(0.0, 0.8, 0.3)
+    # n_filters = range(5, 155, 10)
+    pool_outs = [1, 2, 4, 8]
 
+    FILTERS = 128
     #for i in range(len(lrs)):
     #    for j in range(len(beta1s)):
     #        for k in range(len(beta2s)):
@@ -295,6 +302,15 @@ if __name__ == "__main__":
     #                print(trainer.train_hist_test[-1])
     
     #trainer = classifier_trainer(50, 256, 0.0018, b1=0.9, b2=0.99, drop=0.2, c=None)
-    trainer = classifier_trainer(50, 256, 0.018, b1=0.9, b2=0.99, drop=0.2)
-    model = trainer.train()
-    torch.save(model.state_dict(), "/home/pbromley/SynthSeqs/CompleteRun/saved_models/classifiers/large.pth")
+
+
+    for lr, pool_out, drop in product(lrs, pool_outs, drops):
+        trainer = classifier_trainer(10, 256, 0.0018, 80, pool_out, b1=0.9, b2=0.99, drop=drop)
+        model = trainer.train()
+        print(str(lr), end="\t")
+        print(str(pool_out), end="\t")
+        print(str(drop), end="\t")
+        print('Train loss: {}'.format(trainer.train_hist[-1]), end="\t")
+        print('Validation loss: {}'.format(trainer.train_hist_test[-1]))
+    #model = trainer.train()
+    #torch.save(model.state_dict(), "/home/pbromley/SynthSeqs/CompleteRun/saved_models/classifiers/large.pth")
