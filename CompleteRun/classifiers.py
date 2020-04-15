@@ -139,16 +139,68 @@ class tmp(nn.Module):
         return out.squeeze()
 
 
+class conv_net(nn.Module):
+    def __init__(self,
+                 filters,
+                 filter_length,
+                 fully_connected,
+                 drop):
+        super(conv_net, self).__init__()
+        assert filter_length % 2 != 0
+        self.net = nn.Sequential(
+            nn.Conv1d(4,
+                      filters,
+                      kernel_size=filter_length,
+                      stride=2,
+                      padding=filter_length // 2),
+            nn.ReLU(True),
+            nn.BatchNorm1d(filters),
+            nn.Dropout(drop),
+
+            nn.Conv1d(filters,
+                      filters * 2,
+                      kernel_size=filter_length,
+                      stride=2,
+                      padding=filter_length // 2),
+            nn.ReLU(True),
+            nn.BatchNorm1d(filters * 2),
+            nn.Dropout(drop),
+        )
+        self.fc_net = nn.Sequential(
+            nn.Linear(25 * filters * 2, fully_connected),
+            nn.ReLU(True),
+            nn.Dropout(drop),
+            nn.BatchNorm1d(fully_connected),
+            nn.Linear(fully_connected, 16),
+            nn.Softmax(dim=1)
+        )
+
+        self.filters = filters
+
+    def forward(self, x):
+        x = x.transpose(2, 3).squeeze()
+        h = self.net(x).view(-1, 25 * self.filters * 2)
+        out = self.fc_net(h)
+        return out.squeeze()
+
+
 
 class classifier_trainer():
-    def __init__(self, epochs, bs, lr, filters, pool_out, b1=0.9, b2=0.999, drop=0.0):
+    def __init__(self,
+                 epochs,
+                 bs,
+                 lr,
+                 model_params,
+                 model,
+                 b1=0.9,
+                 b2=0.999):
         dataloaders = data_helper.get_the_dataloaders(bs, weighted_sample=True)
 
         self.dataloader = dataloaders['train_seqs_classifier_large']
         self.validation_dataloader = dataloaders['validation_seqs_classifier_large']
         self.test_dataloader = dataloaders['test_seqs_classifier_large']
 
-        self.model = tmp(filters, pool_out, drop=drop).to("cuda") ##
+        self.model = model(*model_params).to("cuda") ##
         self.criterion = nn.CrossEntropyLoss().to("cuda")
 
         self.opt = optim.Adam(self.model.parameters(), lr=lr, betas=(b1, b2))
@@ -165,11 +217,10 @@ class classifier_trainer():
         return acc
 
     def count_parameters(self):
-        pass
-        #return print(p.numel() for p in self.model.parameters() if p.requires_grad)
-        #for p in self.model.parameters():
-            #if p.requires_grad:
-                #print(p.numel())
+        return sum(
+            p.numel() for p in self.model.parameters() if p.requires_grad
+        )
+
 
     def train(self):
         for epoch in range(self.epochs):
@@ -187,13 +238,6 @@ class classifier_trainer():
 
                 if i % 3000 == 0:
                     self.model.eval()
-                    #a = np.array([])
-                    #for j, b in enumerate(self.test_dataloader):
-                    #    p = self.model(b[0].float().to("cuda"))
-                    #    a = np.append(a, self.accuracy(p.detach(), b[1].float().to("cuda").detach()))
-                    #conf_low = a.mean() - ((1.96 * np.std(a))/np.sqrt(len(a)))
-                    #conf_high = a.mean() + ((1.96 * np.std(a))/np.sqrt(len(a)))
-                    #train_a = self.accuracy(pred.detach(), y.detach())
                     y_true, y_pred, test_loss = self.get_preds()
                     self.train_hist_test.append(test_loss.item())
                     self.train_hist.append(loss.item())
@@ -230,7 +274,7 @@ class classifier_trainer():
             y_true[i*bs:(i+1)*bs] = batch[1].numpy()
             pred = self.model(batch[0].float().to("cuda")).detach()
             y_pred[i*bs:(i+1)*bs] = pred.cpu().numpy()
-            
+
             loss += self.criterion(pred, batch[1].long().to("cuda"))
         loss = loss / i
         return y_true, y_pred, loss
@@ -246,7 +290,7 @@ class classifier_trainer():
 #            plt.title("AUPRC for component {0}, Avg. Precision: {1:0.2f}".format(self.c+1, ap))
 #            plt.savefig(('/home/pbromley/generative_dhs/auprc/strong-%d.png' % self.c))
 #            plt.close()
-#        return ap 
+#        return ap
 
     def confusion(self, y_true, y_pred):
         cm = confusion_matrix(y_true, y_pred.argmax(axis=1))
@@ -283,34 +327,40 @@ if __name__ == "__main__":
     lrs = np.arange(0.001, 0.009, 0.0008)
     beta1s = np.arange(0.7, 0.9, 0.1)
     beta2s = np.arange(0.69, 1.0, 0.1)
-    drops = np.arange(0.0, 0.8, 0.3)
     # n_filters = range(5, 155, 10)
-    pool_outs = [1, 2, 4, 8]
-
-    FILTERS = 128
-    #for i in range(len(lrs)):
-    #    for j in range(len(beta1s)):
-    #        for k in range(len(beta2s)):
-    #            for l in range(len(drops)):
-    #                trainer = classifier_trainer(10, 256, lrs[i], b1=beta1s[j], b2=beta2s[k], drop=drops[l], c=None)
-    #                model = trainer.train()
-    #                print(str(lrs[i]), end="\t")
-    #                print(str(beta1s[j]), end="\t")
-    #                print(str(beta2s[k]), end="\t")
-    #                print(str(drops[l]), end="\t")
-    #                print(trainer.train_hist[-1], end="\t")
-    #                print(trainer.train_hist_test[-1])
-    
-    #trainer = classifier_trainer(50, 256, 0.0018, b1=0.9, b2=0.99, drop=0.2, c=None)
 
 
-    for lr, pool_out, drop in product(lrs, pool_outs, drops):
-        trainer = classifier_trainer(10, 256, 0.0018, 80, pool_out, b1=0.9, b2=0.99, drop=drop)
-        model = trainer.train()
-        print(str(lr), end="\t")
-        print(str(pool_out), end="\t")
+    ### MODEL PARAMS ###
+    model = conv_net
+    filters = np.array([8, 16, 32, 64])
+    filter_lengths = np.array([7, 9, 11, 13])
+    fully_connecteds = np.array([50, 100, 150])
+    drops = np.array([0.1])
+
+    model_param_set = product(filters,
+                              filter_lengths,
+                              fully_connecteds,
+                              drops)
+
+    print('n_filters\tfilter_len\tn_fc\tdrop\ttrain_loss\tval_loss')
+    for model_params in model_param_set:
+        trainer = classifier_trainer(10,
+                                     256,
+                                     0.0018,
+                                     model_params,
+                                     model,
+                                     b1=0.9,
+                                     b2=0.99)
+        trained = trainer.train()
+
+        n_filters, filter_length, n_fc, drop = model_params
+        print(str(n_filters), end="\t")
+        print(str(filter_length), end="\t")
+        print(str(n_fc), end="\t")
         print(str(drop), end="\t")
-        print('Train loss: {}'.format(trainer.train_hist[-1]), end="\t")
-        print('Validation loss: {}'.format(trainer.train_hist_test[-1]))
+        print(str(trainer.train_hist[-1]), end="\t")
+        print(str(trainer.train_hist_test[-1]))
+        # print('Train loss: {}'.format(trainer.train_hist[-1]), end="\t")
+        # print('Validation loss: {}'.format(trainer.train_hist_test[-1]))
     #model = trainer.train()
     #torch.save(model.state_dict(), "/home/pbromley/SynthSeqs/CompleteRun/saved_models/classifiers/large.pth")
