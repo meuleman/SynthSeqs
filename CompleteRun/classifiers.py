@@ -142,32 +142,36 @@ class tmp(nn.Module):
 class conv_net(nn.Module):
     def __init__(self,
                  filters,
-                 filter_length,
+                 pool_size,
                  fully_connected,
                  drop):
         super(conv_net, self).__init__()
-        assert filter_length % 2 != 0
+        filter_length = 15
+        second_layer_filters = 72 - filters
+        out_length = 100 // (pool_size * pool_size)
         self.net = nn.Sequential(
             nn.Conv1d(4,
                       filters,
                       kernel_size=filter_length,
-                      stride=2,
+                      stride=1,
                       padding=filter_length // 2),
             nn.ReLU(True),
             nn.BatchNorm1d(filters),
             nn.Dropout(drop),
+            nn.MaxPool1d(2),
 
             nn.Conv1d(filters,
-                      filters * 2,
+                      second_layer_filters,
                       kernel_size=filter_length,
-                      stride=2,
+                      stride=1,
                       padding=filter_length // 2),
             nn.ReLU(True),
-            nn.BatchNorm1d(filters * 2),
+            nn.BatchNorm1d(second_layer_filters),
             nn.Dropout(drop),
+            nn.MaxPool1d(2),
         )
         self.fc_net = nn.Sequential(
-            nn.Linear(25 * filters * 2, fully_connected),
+            nn.Linear(out_length * second_layer_filters, fully_connected),
             nn.ReLU(True),
             nn.Dropout(drop),
             nn.BatchNorm1d(fully_connected),
@@ -175,11 +179,12 @@ class conv_net(nn.Module):
             nn.Softmax(dim=1)
         )
 
-        self.filters = filters
+        self.second_layer_filters = second_layer_filters
+        self.out_length = out_length
 
     def forward(self, x):
         x = x.transpose(2, 3).squeeze()
-        h = self.net(x).view(-1, 25 * self.filters * 2)
+        h = self.net(x).view(-1, self.out_length * self.second_layer_filters)
         out = self.fc_net(h)
         return out.squeeze()
 
@@ -333,16 +338,16 @@ if __name__ == "__main__":
     ### MODEL PARAMS ###
     model = conv_net
     filters = [8, 16, 32, 64]
-    filter_lengths = [7, 9, 11, 13]
+    pool_sizes = [2, 5, 10]
     fully_connecteds = [50, 100, 150]
-    drops = [0.1]
+    drops = [0.1, 0.2]
 
     model_param_set = product(filters,
-                              filter_lengths,
+                              pool_sizes,
                               fully_connecteds,
                               drops)
 
-    print('n_filters\tfilter_len\tn_fc\tdrop\ttrain_loss\tval_loss')
+    print('n_filters\tpool_size\tn_fc\tdrop\ttrain_loss\tval_loss')
     for model_params in model_param_set:
         trainer = classifier_trainer(10,
                                      256,
@@ -353,9 +358,9 @@ if __name__ == "__main__":
                                      b2=0.99)
         trained = trainer.train()
 
-        n_filters, filter_length, n_fc, drop = model_params
+        n_filters, pool_size, n_fc, drop = model_params
         print(str(n_filters), end="\t")
-        print(str(filter_length), end="\t")
+        print(str(pool_size), end="\t")
         print(str(n_fc), end="\t")
         print(str(drop), end="\t")
         print(str(trainer.train_hist[-1]), end="\t")
