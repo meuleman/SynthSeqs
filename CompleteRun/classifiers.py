@@ -332,10 +332,10 @@ if __name__ == "__main__":
 
     ### MODEL PARAMS ###
     model = conv_net
-    filters = np.array([8, 16, 32, 64])
-    filter_lengths = np.array([7, 9, 11, 13])
-    fully_connecteds = np.array([50, 100, 150])
-    drops = np.array([0.1])
+    filters = [8, 16, 32, 64]
+    filter_lengths = [7, 9, 11, 13]
+    fully_connecteds = [50, 100, 150]
+    drops = [0.1]
 
     model_param_set = product(filters,
                               filter_lengths,
