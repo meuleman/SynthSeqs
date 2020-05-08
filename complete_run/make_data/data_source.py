@@ -8,7 +8,7 @@ from utils.exceptions import UnimplementedMethodException
 class DataSource:
 
     def __init__(self, data, filepath):
-        self.data = data
+        self.raw_data = data
         self.filepath = filepath
 
     @classmethod
@@ -21,7 +21,7 @@ class DataSource:
 
     @property
     def data(self):
-        return self.data
+        return self.raw_data
 
 
 class DHSAnnotations(DataSource):
@@ -38,14 +38,14 @@ class DHSAnnotations(DataSource):
     
     @property
     def data(self):
-        return self.data[DHS_DATA_COLUMNS]
+        return self.raw_data[DHS_DATA_COLUMNS]
 
 
 class NMFLoadings(DataSource):
 
     @classmethod
     def from_path(cls, path):
-        df = pd.read_csv(path, sep='\t')
+        df = pd.read_csv(path, sep='\t', index_col=0)
         return cls(df, path)
 
     @classmethod

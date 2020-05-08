@@ -22,6 +22,7 @@ PATH_TO_NMF_LOADINGS = \
 
 OUTPUT_PATH = 'data/'
 
+
 def main():
     dhs_annotations = DHSAnnotations.from_path(PATH_TO_DHS_MASTERLIST)
     nmf_loadings = NMFLoadings.from_path(PATH_TO_NMF_LOADINGS)
@@ -33,6 +34,9 @@ def main():
                                mean_signal=MEAN_SIGNAL,
                                sequence_length=SEQUENCE_LENGTH,
                                output_path=OUTPUT_PATH)
-    
-    import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace() 
     data_manager.write_data()
+
+
+if __name__ == '__main__':
+    main()

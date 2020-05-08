@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from progress.bar import IncrementalBar
 from Bio import SeqIO
 
 from utils.constants import (
@@ -57,6 +58,7 @@ class DataManager:
 
     def add_sequences_column(self, df, genome, length):
         seqs = []
+        bar = IncrementalBar('Sequences', max=len(df))
         for row_i, row in df.iterrows():
             l, r = self.sequence_bounds(row[SUMMIT],
                                         row[START],
@@ -66,9 +68,12 @@ class DataManager:
 
             if bad_nucleotides(seq):
                 df = df.drop(row_i)
-                continue
-            seqs.append(seq)
+            else:
+                seqs.append(seq)
 
+            bar.next()
+
+        bar.finish()
         df[RAW_SEQUENCE] = seqs
         return df
 
