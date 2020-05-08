@@ -160,6 +160,12 @@ def one_hot_to_seq(one_hot):
         seq += order_dict[elt]
     return Seq(seq, single_letter_alphabet)
 
+def bad_nucleotides(seq):
+    for nt in seq:
+        if nt not in ["A", "T", "G", "C"]:
+            return True
+    return False
+
 def clean_up_one_hot(one_hot):
     o = np.zeros_like(one_hot)
     idxs = np.argmax(one_hot, axis=1)
