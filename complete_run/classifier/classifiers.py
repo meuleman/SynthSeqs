@@ -158,7 +158,7 @@ class conv_net(nn.Module):
             nn.ReLU(True),
             nn.BatchNorm1d(filters),
             nn.Dropout(drop),
-            nn.MaxPool1d(2),
+            nn.MaxPool1d(pool_size),
 
             nn.Conv1d(filters,
                       second_layer_filters,
@@ -168,7 +168,7 @@ class conv_net(nn.Module):
             nn.ReLU(True),
             nn.BatchNorm1d(second_layer_filters),
             nn.Dropout(drop),
-            nn.MaxPool1d(2),
+            nn.MaxPool1d(pool_size),
         )
         self.fc_net = nn.Sequential(
             nn.Linear(out_length * second_layer_filters, fully_connected),
@@ -338,7 +338,7 @@ if __name__ == "__main__":
     ### MODEL PARAMS ###
     model = conv_net
     filters = [8, 16, 32, 64]
-    pool_sizes = [2, 5, 10]
+    pool_sizes = [5, 2, 10]
     fully_connecteds = [50, 100, 150]
     drops = [0.1, 0.2]
 
