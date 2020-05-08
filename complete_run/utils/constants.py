@@ -48,9 +48,21 @@ COMPONENT_COLUMNS = [
     'C16',
 ]
 
+# Train, test and validation dataset constants.
+TRAIN = 'train'
+TEST = 'test'
+VALIDATION = 'validation'
+NUM_SEQS_PER_COMPONENT = {
+    TRAIN: 10000,
+    TEST: 1000,
+    VALIDATION: 1000,
+}
 # Holdout chromosomes used for Test and Validation datasets.
 TEST_CHR = 'chr1'
 VALIDATION_CHR = 'chr2'
 
 REFERENCE_GENOME_FILETYPE = 'fasta'
 
+
+def data_filename(label, kind, model):
+    return f"{label}_{kind}_{model}.npy"

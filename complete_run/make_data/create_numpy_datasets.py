@@ -6,17 +6,22 @@ from Bio import SeqIO
 from utils.constants import (
     COMPONENT,
     COMPONENT_COLUMNS,
+    data_filename,
     DHS_DATA_COLUMNS,
     DHS_WIDTH,
     END,
     NUMSAMPLES,
+    NUM_SEQS_PER_COMPONENT,
     PROPORTION,
     RAW_SEQUENCE,
     SEQNAME,
     START,
     SUMMIT,
+    TEST,
     TEST_CHR,
     TOTAL_SIGNAL,
+    TRAIN,
+    VALIDATION,
     VALIDATION_CHR,
 )
 from utils.seq_utils import seq_to_one_hot, bad_nucleotides
@@ -48,7 +53,9 @@ class DataManager:
 
         df = self.add_sequences_column(df, genome, sequence_length)
 
-        df[COMPONENT] = df[COMPONENT_COLUMNS].idxmax(axis=1)
+        df[COMPONENT] = (df[COMPONENT_COLUMNS]
+                        .idxmax(axis=1)
+                        .apply(lambda x: int(x[1:]) - 1))
         df[PROPORTION] = (
             df[COMPONENT_COLUMNS].max(axis=1) / df[COMPONENT_COLUMNS].sum(axis=1)
         )
@@ -58,14 +65,13 @@ class DataManager:
 
     def add_sequences_column(self, df, genome, length):
         seqs = []
-        bar = IncrementalBar('Sequences', max=len(df))
+        bar = IncrementalBar('Sequences pulled from genome', max=len(df))
         for row_i, row in df.iterrows():
             l, r = self.sequence_bounds(row[SUMMIT],
                                         row[START],
                                         row[END],
                                         length)
             seq = genome.sequence(row[SEQNAME], l, r)
-
             if bad_nucleotides(seq):
                 df = df.drop(row_i)
             else:
@@ -87,21 +93,44 @@ class DataManager:
 
     def write_data(self):
         masks = {}
-        masks['test'] = self.df[SEQNAME] == TEST_CHR
-        masks['validation'] = self.df[SEQNAME] == VALIDATION_CHR
-        masks = ~(masks['test'] | masks['validation'])
+        masks[TEST] = (self.df[SEQNAME] == TEST_CHR)
+        masks[VALIDATION] = (self.df[SEQNAME] == VALIDATION_CHR)
+        masks = ~(masks[TEST] | masks[VALIDATION])
 
+        for label in masks.keys():
+            df = self.df[masks[label]]
 
-# def get_sequence_strength_cutoffs(df, num_sequences):
-#     component = df[COMPONENT_COLUMNS].idxmax(axis=1)
-#     component_val = df[COMPONENT_COLUMNS].max(axis=1)
-#     nmf_sum = df[COMPONENT_COLUMNS].sum(axis=1)
+            # Shuffle the rows of the dataframe. This is done to make
+            # tiebreaking random for the step of pulling the
+            # proportion rank masks.
+            df = df.sample(frac=1)
 
-#     df['component'] = component
-#     df['component_val'] = component_val
-#     df['nmf_sum'] = nmf_sum
+            sequences = df[RAW_SEQUENCE].values
+            one_hots = np.array(list(map(seq_to_one_hot, sequences)))
+            components = df[COMPONENT].values
 
-#     df['proportion'] = df.component_val / df.nmf_sum
+            # For each component, rank descending by proportion and make
+            # a mask keeping the top N sequences.
+            prop_mask = (
+                df.groupby(COMPONENT)[PROPORTION]
+                  .rank(ascending=False, method='first')
+            ) <= NUM_SEQS_PER_COMPONENT[label]
+            
+            self._write_generator_data(label, one_hots, components)
+            self._write_classifier_data(label, one_hots, components, prop_mask)
 
-#     strongest = df.groupby('component')['proportion'].nlargest(num_sequences)
-#     return np.array([strongest[c].min() for c in COMPONENT_COLUMNS])
+    def _write_generator_data(self, label, one_hots, components):
+        seq_filename = data_filename(label, 'sequences', 'generator')
+        comp_filename = data_filename(label, 'components', 'generator')
+        
+        print(f'Writing generator {label} data.')
+        np.save(self.output_path + seq_filename, one_hots)
+        np.save(self.output_path + comp_filename, components)
+
+    def _write_classifier_data(self, label, one_hots, components, mask):
+        seq_filename = data_filename(label, 'sequences', 'classifier')
+        comp_filename = data_filename(label, 'components', 'classifier')
+
+        print(f'Writing classifier {label} data.')
+        np.save(self.output_path + seq_filename, one_hots[mask])
+        np.save(self.output_path + comp_filename, components[mask])
