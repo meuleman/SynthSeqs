@@ -95,7 +95,7 @@ class DataManager:
         masks = {}
         masks[TEST] = (self.df[SEQNAME] == TEST_CHR)
         masks[VALIDATION] = (self.df[SEQNAME] == VALIDATION_CHR)
-        masks = ~(masks[TEST] | masks[VALIDATION])
+        masks[TRAIN] = ~(masks[TEST] | masks[VALIDATION])
 
         for label in masks.keys():
             df = self.df[masks[label]]

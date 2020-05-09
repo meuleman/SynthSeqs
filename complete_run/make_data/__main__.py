@@ -20,7 +20,7 @@ PATH_TO_NMF_LOADINGS = \
     "/home/amuratov/fun/60918/60518_NNDSVD_NC16/" \
     "2018-06-08NC16_NNDSVD_Mixture.csv"
 
-OUTPUT_PATH = 'data/'
+DATA_ROOT = '/home/pbromley/synth-seqs-data/'
 
 
 def main():
@@ -33,8 +33,8 @@ def main():
                                genome=genome,
                                mean_signal=MEAN_SIGNAL,
                                sequence_length=SEQUENCE_LENGTH,
-                               output_path=OUTPUT_PATH)
-    import pdb; pdb.set_trace() 
+                               output_path=DATA_ROOT)
+
     data_manager.write_data()
 
 
