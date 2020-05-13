@@ -38,11 +38,11 @@ class ClassifierTrainer:
 
     def train(self):
         for epoch in range(self.epochs):
-            model.train()
+            self.model.train()
             for i, batch in enumerate(self.dataloader):
                 x, y = batch
-                x = x.float().to("cuda")
-                y = y.long().to("cuda")
+                x = x.float().to(self.device)
+                y = y.long().to(self.device)
                 self.opt.zero_grad()
                 pred = self.model(x)
                 loss = self.criterion(pred, y)

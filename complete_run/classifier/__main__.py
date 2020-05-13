@@ -5,10 +5,10 @@ from .models import conv_net
 from .trainer import ClassifierTrainer
 
 def main():
-    device = device("cuda" if cuda.is_available() else "cpu")
+    dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 2
+    EPOCHS = 40 
     BATCH_SIZE = 256
     OPTIMIZER_PARAMS = {
         'lr': 0.0018,
@@ -16,10 +16,9 @@ def main():
     }
     MODEL_PARAMS = (64, 5, 25, 0.0)
     MODEL = conv_net
-    COLLECTOR = Collector(device)
+    COLLECTOR = Collector(dev)
     DATA_DIR = '/home/pbromley/synth-seqs-data/'
-    DEVICE = device
-
+    DEVICE = dev
     trainer = ClassifierTrainer(EPOCHS,
                                 BATCH_SIZE,
                                 OPTIMIZER_PARAMS,
@@ -31,11 +30,12 @@ def main():
 
     trainer.train()
 
-    print(trainer.collector.loss_history)
-    print(trainer.collector.pred_history)
-
     OUTPUT_DIR = '/home/pbromley/synth-seqs-figures/'
     evaluator = Evaluator(trainer.collector, OUTPUT_DIR)
 
     evaluator.plot_loss('loss.png')
     evaluator.plot_confusion('confusion.png')
+
+
+if __name__ == "__main__":
+    main()

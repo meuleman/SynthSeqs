@@ -2,6 +2,7 @@ from os import path
 
 import numpy as np
 import torch
+from torch import FloatTensor, LongTensor
 from torch.utils.data import DataLoader, Dataset
 
 from utils.constants import (
@@ -18,8 +19,8 @@ from utils.constants import (
 class DHSSequencesDataset(Dataset):
 
     def __init__(self, seqs, components):
-        self.seqs = seqs
-        self.components = components
+        self.seqs = FloatTensor(seqs)
+        self.components = LongTensor(components)
 
     def __len__(self):
         return len(self.seqs)
