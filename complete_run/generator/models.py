@@ -10,7 +10,6 @@ class GaussianNoise(nn.Module):
     def __init__(self, stddev):
         super().__init__()
         self.stddev = stddev
-        print("hello")
 
     def forward(self, din):
         if self.training:
@@ -145,33 +144,6 @@ class snp_generator_2d_temp_2b(nn.Module):
         h = self.up2(h)
         output = self.softmax(h)
         return output
-
-class resnet_block(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_length, spec_norm=False, stride=1):
-        super(resnet_block, self).__init__()
-        if spec_norm:
-            self.net = nn.Sequential(
-                SpectralNorm(nn.Conv1d(in_channels, out_channels, kernel_size=kernel_length, stride=stride, padding=kernel_length//2, bias=False)),
-                nn.ReLU(),
-                SpectralNorm(nn.Conv1d(out_channels, out_channels, kernel_size=kernel_length, stride=stride, padding=kernel_length//2, bias=False)),
-            )
-        else:
-            self.net = nn.Sequential(
-                nn.Conv1d(in_channels, out_channels, kernel_size=kernel_length, stride=stride, padding=kernel_length//2, bias=False),
-                nn.ReLU(),
-                nn.BatchNorm1d(out_channels),
-                #nn.Dropout(0.5),
-                nn.Conv1d(out_channels, out_channels, kernel_size=kernel_length, stride=stride, padding=kernel_length//2, bias=False),
-                nn.BatchNorm1d(out_channels),
-            )
-        self.relu = nn.ReLU()
-
-    def forward(self, x):
-        residual = x
-        out = self.net(x)
-        out += residual
-        out = self.relu(out)
-        return out
 
 
 class resnet_generator_1d(nn.Module):

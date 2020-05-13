@@ -106,14 +106,6 @@ DHS_COLORS = np.array([
 
 PATH_TO_MOTIF_MEMES = "/home/pbromley/generative_dhs/memes/new_memes/"
 
-def weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        m.weight.detach().normal_(0.0, 0.02)
-    elif classname.find('BatchNorm') != -1:
-        m.weight.detach().normal_(1.0, 0.02)
-        m.bias.detach().fill_(0)
-
 def initialize_train_hist():
     train_hist = {}
     train_hist['d_loss'] = []

@@ -4,17 +4,21 @@ from progress.bar import IncrementalBar
 from Bio import SeqIO
 
 from utils.constants import (
+    CLASSIFIER,
     COMPONENT,
+    COMPONENTS,
     COMPONENT_COLUMNS,
     data_filename,
     DHS_DATA_COLUMNS,
     DHS_WIDTH,
     END,
+    GENERATOR,
     NUMSAMPLES,
     NUM_SEQS_PER_COMPONENT,
     PROPORTION,
     RAW_SEQUENCE,
     SEQNAME,
+    SEQUENCES,
     START,
     SUMMIT,
     TEST,
@@ -24,7 +28,7 @@ from utils.constants import (
     VALIDATION,
     VALIDATION_CHR,
 )
-from utils.seq_utils import seq_to_one_hot, bad_nucleotides
+from utils.seq import seq_to_one_hot, bad_nucleotides
 
 
 COMPONENT_COLUMNS_MAP = {
@@ -120,16 +124,16 @@ class DataManager:
             self._write_classifier_data(label, one_hots, components, prop_mask)
 
     def _write_generator_data(self, label, one_hots, components):
-        seq_filename = data_filename(label, 'sequences', 'generator')
-        comp_filename = data_filename(label, 'components', 'generator')
+        seq_filename = data_filename(label, SEQUENCES, GENERATOR)
+        comp_filename = data_filename(label, COMPONENTS, GENERATOR)
         
         print(f'Writing generator {label} data.')
         np.save(self.output_path + seq_filename, one_hots)
         np.save(self.output_path + comp_filename, components)
 
     def _write_classifier_data(self, label, one_hots, components, mask):
-        seq_filename = data_filename(label, 'sequences', 'classifier')
-        comp_filename = data_filename(label, 'components', 'classifier')
+        seq_filename = data_filename(label, SEQUENCES, CLASSIFIER)
+        comp_filename = data_filename(label, COMPONENTS, CLASSIFIER)
 
         print(f'Writing classifier {label} data.')
         np.save(self.output_path + seq_filename, one_hots[mask])

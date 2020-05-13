@@ -1,7 +1,7 @@
 from utils.constants import MEAN_SIGNAL, SEQUENCE_LENGTH
 
-from .create_numpy_datasets import DataManager
-from .data_source import (
+from .process import DataManager
+from .source import (
     DHSAnnotations,
     NMFLoadings,
     ReferenceGenome,
