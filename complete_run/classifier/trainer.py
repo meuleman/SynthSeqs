@@ -31,7 +31,7 @@ class ClassifierTrainer:
         self.dataloaders = DHSDataLoader(self.batch_size,
                                          CLASSIFIER,
                                          self.data_dir)
-        self.collector = Collector(device)
+        self.collector = Collector(self.device)
 
         # Initial data collection on completely untrained model.
         self.collector.collect(model=self.model,
@@ -44,7 +44,7 @@ class ClassifierTrainer:
 
         for epoch in range(self.epochs):
             self.model.train()
-            for i, batch in enumerate(self.dataloader):
+            for i, batch in enumerate(self.dataloaders.train):
                 x, y = batch
                 x = x.float().to(self.device)
                 y = y.long().to(self.device)
@@ -55,24 +55,24 @@ class ClassifierTrainer:
                 self.opt.step()
 
             self.collector.collect(model=self.model,
-                                   dataloader=self.dataloader,
-                                   val_dataloader=self.validation_dataloader,
+                                   dataloader=self.dataloaders.train,
+                                   val_dataloader=self.dataloaders.validation,
                                    criterion=self.criterion)
 
 class HyperParameterSearch:
-    def __init__(self, trainer, optimizer_param_group, model_param_group):
+    def __init__(self, trainer, model_param_group, optimizer_param_group): 
         self.trainer = trainer
-        self.optimizer_param_group = optimizer_param_group
         self.model_param_group = model_param_group
-        self.results = {}
+        self.optimizer_param_group = optimizer_param_group
+        self.results = []
 
         
     def search(self):
-        for optimizer_params in self.optimizer_param_group.as_kwargs:
-            for model_params in self.model_param_group.as_kwargs:
-                self.trainer.train(optimizer_params, model_params)
-                hyper_params = {**optimizer_params, **model_params}
-                self.results[hyper_params] = self.trainer.collector
+        for model_params in self.model_param_group.as_kwargs:
+            for optimizer_params in self.optimizer_param_group.as_kwargs:
+                self.trainer.train(model_params, optimizer_params)
+                hyper_params = {**model_params, **optimizer_params}
+                self.results.append((hyper_params, self.trainer.collector))
 
         return self.results
 

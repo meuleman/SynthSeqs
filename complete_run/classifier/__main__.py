@@ -8,7 +8,7 @@ def main():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 40 
+    EPOCHS = 2
     BATCH_SIZE = 256
     MODEL = conv_net
     DEVICE = dev
@@ -16,8 +16,8 @@ def main():
     trainer = ClassifierTrainer(EPOCHS,
                                 BATCH_SIZE,
                                 MODEL,
-                                DATA_DIR,
-                                DEVICE)
+                                DEVICE,
+                                DATA_DIR)
 
     # OPTIMIZER_PARAMS = {
     #     'lr': 0.0018,
@@ -45,15 +45,19 @@ def main():
     })
 
     hyper_param_search = HyperParameterSearch(trainer,
-                                              optimizer_params_group,
-                                              model_params_group)
+                                              model_params_group,
+                                              optimizer_params_group)
 
     results = hyper_param_search.search()
 
     print(results)
 
-
     OUTPUT_DIR = '/home/pbromley/synth-seqs-figures/'
+
+    for i, result in enumerate(results):
+        _, collector = result
+        evaluator = Evaluator(collector, OUTPUT_DIR)
+        evaluator.plot_loss(f'loss{i}.png')
     # evaluator = Evaluator(trainer.collector, OUTPUT_DIR)
 
     # evaluator.plot_loss('loss.png')
