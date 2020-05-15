@@ -1,6 +1,6 @@
 from torch import cuda, device
 
-from .analysis import Evaluator
+from .analysis import Evaluator, SearchEvaluator
 from .models import conv_net
 from .trainer import ClassifierTrainer, HyperParameterSearch, ParameterGroup
 
@@ -18,6 +18,7 @@ def main():
                                 MODEL,
                                 DEVICE,
                                 DATA_DIR)
+    OUTPUT_DIR = '/home/pbromley/synth-seqs-figures/'
 
     # OPTIMIZER_PARAMS = {
     #     'lr': 0.0018,
@@ -50,18 +51,8 @@ def main():
 
     results = hyper_param_search.search()
 
-    print(results)
-
-    OUTPUT_DIR = '/home/pbromley/synth-seqs-figures/'
-
-    for i, result in enumerate(results):
-        _, collector = result
-        evaluator = Evaluator(collector, OUTPUT_DIR)
-        evaluator.plot_loss(f'loss{i}.png')
-    # evaluator = Evaluator(trainer.collector, OUTPUT_DIR)
-
-    # evaluator.plot_loss('loss.png')
-    # evaluator.plot_confusion('confusion.png')
+    search_evaluator = SearchEvaluator(results)
+    search_evaluator.evaluate(OUTPUT_DIR, 'search_results.csv')
 
 
 if __name__ == "__main__":

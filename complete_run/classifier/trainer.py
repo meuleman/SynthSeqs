@@ -1,4 +1,5 @@
 from itertools import product
+import time
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 
@@ -37,12 +38,14 @@ class ClassifierTrainer:
         self.collector.collect(model=self.model,
                                dataloader=self.dataloaders.train,
                                val_dataloader=self.dataloaders.validation,
-                               criterion=self.criterion)
+                               criterion=self.criterion,
+                               epoch_time=None)
 
     def train(self, model_params, optimizer_params):
         self.setup(model_params, optimizer_params)
 
         for epoch in range(self.epochs):
+            start = time.time()
             self.model.train()
             for i, batch in enumerate(self.dataloaders.train):
                 x, y = batch
@@ -54,10 +57,12 @@ class ClassifierTrainer:
                 loss.backward()
                 self.opt.step()
 
+            elapsed = time.time() - start
             self.collector.collect(model=self.model,
                                    dataloader=self.dataloaders.train,
                                    val_dataloader=self.dataloaders.validation,
-                                   criterion=self.criterion)
+                                   criterion=self.criterion,
+                                   epoch_time=elapsed)
 
 class HyperParameterSearch:
     def __init__(self, trainer, model_param_group, optimizer_param_group): 
