@@ -73,11 +73,17 @@ class HyperParameterSearch:
 
         
     def search(self):
+        total_models = (
+            len(self.model_param_group) * len(self.optimizer_param_group)
+        )
+        trained = 0
         for model_params in self.model_param_group.as_kwargs:
             for optimizer_params in self.optimizer_param_group.as_kwargs:
                 self.trainer.train(model_params, optimizer_params)
                 hyper_params = {**model_params, **optimizer_params}
                 self.results.append((hyper_params, self.trainer.collector))
+                trained += 1
+                print(f'Completed training {trained} of {total_models} models')
 
         return self.results
 
@@ -95,3 +101,9 @@ class ParameterGroup:
         labels = self.params.keys()
         for group in self.as_args:
             yield dict(zip(labels, group))
+
+    def __len__(self):
+        total = 1
+        for v in self.params.values():
+            total *= len(v)
+        return total

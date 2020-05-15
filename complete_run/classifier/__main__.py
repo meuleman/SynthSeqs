@@ -8,7 +8,7 @@ def main():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 2
+    EPOCHS = 20 
     BATCH_SIZE = 256
     MODEL = conv_net
     DEVICE = dev
@@ -39,10 +39,10 @@ def main():
     })
     ### MODEL PARAMS ###
     model_params_group = ParameterGroup({
-        'filters': [32, 64],
-        'pool_size': [5, 10],
-        'fully_connected': [50],
-        'drop': [0.0],
+        'filters': [32, 64, 96],
+        'pool_size': [5, 10, 2],
+        'fully_connected': [25, 50, 100, 150],
+        'drop': [0.0, 0.2, 0.5],
     })
 
     hyper_param_search = HyperParameterSearch(trainer,

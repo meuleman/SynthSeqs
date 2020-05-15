@@ -68,7 +68,7 @@ class Collector:
                 comps = comps.to(self.device)
                 preds = model(seqs)
 
-                loss.append(criterion(preds, comps))
+                loss.append(criterion(preds, comps).item())
 
                 all_trues = torch.cat([all_trues, comps.cpu()], dim=0)
                 all_preds = torch.cat([all_preds, preds.cpu()], dim=0)
@@ -187,25 +187,27 @@ class SearchEvaluator:
             return f'{label}_{metric}'
 
         for hyper_params, collector in self.results:
-            row = {}
+            metrics = {}
             evaluator = Evaluator(collector)
             # Some metrics have both train and validation values.
             for label in [TRAIN, VALIDATION]:
-                row[col(label, LOSS)] = evaluator.final_loss(label)
-                row[col(label, PRECISION)] = (
+                metrics[col(label, LOSS)] = evaluator.final_loss(label)
+                metrics[col(label, PRECISION)] = (
                     evaluator.precision(label, average='macro')
                 )
-                row[col(label, RECALL)] = (
+                metrics[col(label, RECALL)] = (
                     evaluator.recall(label, average='macro')
                 )
-                row[col(label, F1_SCORE)] = (
+                metrics[col(label, F1_SCORE)] = (
                     evaluator.f1_score(label, average='macro')
                 )
 
-            row[LOSS_DIFF] = evaluator.loss_diff()
-            row[EPOCH_TIME] = evaluator.mean_epoch_time()
+            metrics[LOSS_DIFF] = evaluator.loss_diff()
+            metrics[EPOCH_TIME] = evaluator.mean_epoch_time()
 
-            self.df.append(row)
+            row = {**hyper_params, **metrics}
+
+            self.df = self.df.append(row, ignore_index=True)
 
     def save(self, output_dir, filename):
         self.df.to_csv(output_dir + filename)
