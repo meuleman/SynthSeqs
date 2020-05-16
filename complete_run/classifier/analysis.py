@@ -2,7 +2,6 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
-import pandas as pd
 from sklearn.metrics import (
     confusion_matrix,
     f1_score,
@@ -171,48 +170,3 @@ class Evaluator:
 
         plt.savefig(output_dir + filename)
         plt.close()
-
-
-class SearchEvaluator:
-    def __init__(self, results):
-        self.results = results
-        self.df = pd.DataFrame(columns=SEARCH_COLUMN_SCHEMA)
-
-    @property
-    def dataframe(self):
-        return self.df
-
-    def build_eval_df(self):
-        def col(label, metric):
-            return f'{label}_{metric}'
-
-        for hyper_params, collector in self.results:
-            metrics = {}
-            evaluator = Evaluator(collector)
-            # Some metrics have both train and validation values.
-            for label in [TRAIN, VALIDATION]:
-                metrics[col(label, LOSS)] = evaluator.final_loss(label)
-                metrics[col(label, PRECISION)] = (
-                    evaluator.precision(label, average='macro')
-                )
-                metrics[col(label, RECALL)] = (
-                    evaluator.recall(label, average='macro')
-                )
-                metrics[col(label, F1_SCORE)] = (
-                    evaluator.f1_score(label, average='macro')
-                )
-
-            metrics[LOSS_DIFF] = evaluator.loss_diff()
-            metrics[EPOCH_TIME] = evaluator.mean_epoch_time()
-
-            row = {**hyper_params, **metrics}
-
-            self.df = self.df.append(row, ignore_index=True)
-
-    def save(self, output_dir, filename):
-        self.df.to_csv(output_dir + filename)
-
-    def evaluate(self, output_dir, filename):
-        self.build_eval_df()
-        self.save(output_dir, filename)
-

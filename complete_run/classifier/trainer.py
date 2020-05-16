@@ -1,13 +1,23 @@
 from itertools import product
+import pandas as pd
 import time
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 
-from utils.constants import CLASSIFIER
+from utils.constants import CLASSIFIER, TRAIN, VALIDATION
 from utils.data import DHSDataLoader
 from utils.net import weights_init
 
-from .analysis import Collector
+from .analysis import Collector, Evaluator
+from .constants import (
+    EPOCH_TIME,
+    F1_SCORE,
+    LOSS,
+    LOSS_DIFF,
+    PRECISION,
+    RECALL,
+    SEARCH_COLUMN_SCHEMA,
+)
 
 
 class ClassifierTrainer:
@@ -65,13 +75,24 @@ class ClassifierTrainer:
                                    epoch_time=elapsed)
 
 class HyperParameterSearch:
-    def __init__(self, trainer, model_param_group, optimizer_param_group): 
+    def __init__(self,
+                 trainer,
+                 model_param_group,
+                 optimizer_param_group,
+                 output_dir,
+                 filename): 
         self.trainer = trainer
         self.model_param_group = model_param_group
         self.optimizer_param_group = optimizer_param_group
-        self.results = []
+        self.output_dir = output_dir
+        self.filename = filename
 
+        self.df = pd.DataFrame(columns=SEARCH_COLUMN_SCHEMA)
         
+    @property
+    def dataframe(self):
+        return self.df
+
     def search(self):
         total_models = (
             len(self.model_param_group) * len(self.optimizer_param_group)
@@ -80,12 +101,43 @@ class HyperParameterSearch:
         for model_params in self.model_param_group.as_kwargs:
             for optimizer_params in self.optimizer_param_group.as_kwargs:
                 self.trainer.train(model_params, optimizer_params)
+
                 hyper_params = {**model_params, **optimizer_params}
-                self.results.append((hyper_params, self.trainer.collector))
+                self.evaluate(hyper_params, self.trainer.collector)
+
                 trained += 1
                 print(f'Completed training {trained} of {total_models} models')
+        self.save()
 
-        return self.results
+    def evaluate(self, hyper_params, collector):
+        metrics = {}
+        evaluator = Evaluator(collector)
+
+        def col(label, metric):
+            return f'{label}_{metric}'
+
+        # Some metrics have both train and validation values.
+        for label in [TRAIN, VALIDATION]:
+            metrics[col(label, LOSS)] = evaluator.final_loss(label)
+            metrics[col(label, PRECISION)] = (
+                evaluator.precision(label, average='macro')
+            )
+            metrics[col(label, RECALL)] = (
+                evaluator.recall(label, average='macro')
+            )
+            metrics[col(label, F1_SCORE)] = (
+                evaluator.f1_score(label, average='macro')
+            )
+
+        metrics[LOSS_DIFF] = evaluator.loss_diff()
+        metrics[EPOCH_TIME] = evaluator.mean_epoch_time()
+
+        row = {**hyper_params, **metrics}
+
+        self.df = self.df.append(row, ignore_index=True)
+
+    def save(self):
+        self.df.to_csv(self.output_dir + self.filename)
 
 
 class ParameterGroup:
