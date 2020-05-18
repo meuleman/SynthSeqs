@@ -19,4 +19,4 @@
 export TMPDIR=/tmp/slurm.${SLURM_JOBID}
 # ==== end of preamble
 
-python3 -m classifier
+python3 -u -m classifier

@@ -78,14 +78,10 @@ class HyperParameterSearch:
     def __init__(self,
                  trainer,
                  model_param_group,
-                 optimizer_param_group,
-                 output_dir,
-                 filename): 
+                 optimizer_param_group):
         self.trainer = trainer
         self.model_param_group = model_param_group
         self.optimizer_param_group = optimizer_param_group
-        self.output_dir = output_dir
-        self.filename = filename
 
         self.df = pd.DataFrame(columns=SEARCH_COLUMN_SCHEMA)
         
@@ -107,7 +103,6 @@ class HyperParameterSearch:
 
                 trained += 1
                 print(f'Completed training {trained} of {total_models} models')
-        self.save()
 
     def evaluate(self, hyper_params, collector):
         metrics = {}
@@ -136,8 +131,8 @@ class HyperParameterSearch:
 
         self.df = self.df.append(row, ignore_index=True)
 
-    def save(self):
-        self.df.to_csv(self.output_dir + self.filename)
+    def save(self, output_dir, filename):
+        self.df.to_csv(output_dir + filename)
 
 
 class ParameterGroup:
