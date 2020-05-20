@@ -1,6 +1,11 @@
 from torch import nn
 
+from utils.constants import TOTAL_CLASSES
 from utils.net import resnet_block
+
+
+FILTER_LENGTH = 15
+
 
 class one_class(nn.Module):
     def __init__(self):
@@ -116,21 +121,22 @@ class conv_net(nn.Module):
                  fully_connected,
                  drop):
         super(conv_net, self).__init__()
+
         filter_length = 15
-        second_layer_filters = 104 - filters
+        first_layer_filters, second_layer_filters = filters 
         out_length = 100 // (pool_size * pool_size)
         self.net = nn.Sequential(
             nn.Conv1d(4,
-                      filters,
+                      first_layer_filters,
                       kernel_size=filter_length,
                       stride=1,
                       padding=filter_length // 2),
             nn.ReLU(True),
-            nn.BatchNorm1d(filters),
+            nn.BatchNorm1d(first_layer_filters),
             nn.Dropout(drop),
             nn.MaxPool1d(pool_size),
 
-            nn.Conv1d(filters,
+            nn.Conv1d(first_layer_filters,
                       second_layer_filters,
                       kernel_size=filter_length,
                       stride=1,
@@ -145,10 +151,9 @@ class conv_net(nn.Module):
             nn.ReLU(True),
             nn.Dropout(drop),
             nn.BatchNorm1d(fully_connected),
-            nn.Linear(fully_connected, 16),
+            nn.Linear(fully_connected, TOTAL_CLASSES),
             nn.Softmax(dim=1)
-        )
-
+        ) 
         self.second_layer_filters = second_layer_filters
         self.out_length = out_length
 

@@ -8,7 +8,7 @@ def main():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 20
+    EPOCHS = 30
     BATCH_SIZE = 256
     MODEL = conv_net
     DEVICE = dev
@@ -27,15 +27,23 @@ def main():
     })
     ### MODEL PARAMS ###
     model_params_group = ParameterGroup({
-        'filters': [32, 64, 96],
-        'pool_size': [5, 10, 2],
-        'fully_connected': [25, 50, 100, 150],
-        'drop': [0.0, 0.2, 0.5],
+        'filters': [(32, 8),
+                    (32, 16),
+                    (64, 16),
+                    (64, 32),
+                    (80, 16),
+                    (80, 32),
+                    (96, 16),
+                    (96, 32)],
+        'pool_size': [5],
+        'fully_connected': [100],
+        'drop': [0.1, 0.2, 0.3, 0.35],
     })
 
     hyper_param_search = HyperParameterSearch(trainer,
                                               model_params_group,
-                                              optimizer_params_group)
+                                              optimizer_params_group,
+                                              plot_dir=OUTPUT_DIR)
 
     hyper_param_search.search()
     hyper_param_search.save(OUTPUT_DIR, 'search_results.csv')

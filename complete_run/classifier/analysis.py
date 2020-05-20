@@ -132,41 +132,71 @@ class Evaluator:
         times = self.collector.epoch_times
         return sum(times) / len(times)
 
-    def plot_loss(self, filename, output_dir):
+    def _plot_loss_and_stats(self, ax):
         history = self.collector.loss_history
 
-        plt.figure(figsize=(15, 10))
-        plt.ylabel('Loss')
-        plt.xlabel('Epochs')
         xs = list(range(self.collector.epochs))
-
+        ys = []
         for label in history.keys():
-            plt.plot(xs, history[label], label=label)
+            ax.plot(xs, history[label], label=label, linewidth=6)
+            ys.append(history[label][-1])
 
-        plt.legend()
-        plt.savefig(output_dir + filename)
-        plt.close()
+        x = xs[-1]
+        ymin, ymax = min(ys), max(ys)
+        diff = ymax - ymin
+        ax.vlines(x, ymin, ymax, linestyles='dashed')
+        ax.text(x,
+                ymax + .005,
+                'Diff: {:.3g}'.format(diff),
+                fontsize=24,
+                bbox=dict(facecolor='white', alpha=0.5),
+                ha='right')
 
-    def plot_confusion(self, label, filename, output_dir, normalize=None):
+        ax.set_ylabel('Cross entropy loss', fontsize=30)
+        ax.set_xlabel('Epochs', fontsize=30)
+        ax.set_title("Classifier's cross entropy loss during training",
+                     fontsize=40)
+        ax.tick_params(labelsize=24)
+        ax.legend(fontsize=26)
+
+    def _plot_confusion(self, ax, label, normalize):
         cm = self.confusion_matrix(label, normalize=normalize)
 
-        fig, ax = plt.subplots(figsize=(10, 10))
         ax.imshow(cm, cmap='Blues')
 
-        # labelsx = [item.get_text() for item in ax.get_xticklabels()]
-        # labelsy = [item.get_text() for item in ax.get_yticklabels()]
-        # labelsx[1:-2] = np.arange(1, 17, 2)
-        # labelsy[1:-2] = np.arange(1, 17, 2)
-        # ax.set_xticklabels(labelsx)
-        # ax.set_yticklabels(labelsy)
+        labelsx = [item.get_text() for item in ax.get_xticklabels()]
+        labelsy = [item.get_text() for item in ax.get_yticklabels()]
+        labelsx[1:-2] = np.arange(1, 17, 2)
+        labelsy[1:-2] = np.arange(1, 17, 2)
+        ax.set_xticklabels(labelsx, fontsize=24)
+        ax.set_yticklabels(labelsy, fontsize=24)
+        ax.set_title(f'Confusion matrix of {label} predictions', fontsize=40)
+        ax.set_xlabel('Predicted label', fontsize=30)
+        ax.set_ylabel('True label', fontsize=30)
         for i in range(16):
             for j in range(16):
-                text = ax.text(j,
-                                i,
-                                cm[i, j],
-                                ha="center",
-                                va="center",
-                                color="orange")
+                ax.text(j,
+                        i,
+                        cm[i, j],
+                        ha="center",
+                        va="center",
+                        color="orange",
+                        fontsize=12,
+                        fontweight='heavy')
 
+    def plot_loss_and_stats(self, filename, output_dir):
+        _, ax = plt.subplots(figsize=(15, 10))
+        self._plot_loss_and_stats(ax)
         plt.savefig(output_dir + filename)
-        plt.close()
+
+    def plot_confusion(self, filename, output_dir, label, normalize=None):
+        _, ax = plt.subplots(figsize=(10, 10))
+        self._plot_confusion(ax, label, normalize)
+        plt.savefig(output_dir + filename)
+    
+    def plot_for_search(self, filename, output_dir, label, normalize=None):
+        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(30, 15))
+        self._plot_loss_and_stats(ax1)
+        self._plot_confusion(ax2, label, normalize)
+        plt.savefig(output_dir + filename)
+

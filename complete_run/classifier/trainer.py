@@ -78,12 +78,14 @@ class HyperParameterSearch:
     def __init__(self,
                  trainer,
                  model_param_group,
-                 optimizer_param_group):
+                 optimizer_param_group,
+                 plot_dir=None):
         self.trainer = trainer
         self.model_param_group = model_param_group
         self.optimizer_param_group = optimizer_param_group
 
         self.df = pd.DataFrame(columns=SEARCH_COLUMN_SCHEMA)
+        self.plot_dir = plot_dir
         
     @property
     def dataframe(self):
@@ -130,6 +132,14 @@ class HyperParameterSearch:
         row = {**hyper_params, **metrics}
 
         self.df = self.df.append(row, ignore_index=True)
+
+        if self.plot_dir:
+            filename = '_'.join(x + str(y) for x, y in hyper_params.items())
+            filename = filename.replace('.', '')
+            evaluator.plot_for_search(filename,
+                                      self.plot_dir,
+                                      VALIDATION,
+                                      normalize='true')
 
     def save(self, output_dir, filename):
         self.df.to_csv(output_dir + filename)
