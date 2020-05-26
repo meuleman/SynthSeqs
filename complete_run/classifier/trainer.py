@@ -135,7 +135,10 @@ class HyperParameterSearch:
 
         if self.plot_dir:
             filename = '_'.join(x + str(y) for x, y in hyper_params.items())
-            filename = filename.replace('.', '')
+            bad_chars = ['.', ' ', '(', ')']
+            for char in bad_chars:
+                filename = filename.replace(char, '')
+            filename = filename.replace(',', '-')
             evaluator.plot_for_search(filename,
                                       self.plot_dir,
                                       VALIDATION,
