@@ -8,24 +8,9 @@ import torch.optim as optim
 import torch.nn as nn
 
 import numpy as np
-#import matplotlib
-#matplotlib.use('agg')
-#from matplotlib import pyplot as plt
-# import seaborn as sns
 from itertools import compress
 import argparse
 from pathlib import Path
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--gen_path', type=str, default='', help='path to generator weights')
-parser.add_argument('--model_path', type=str, default='', help='path to model weights')
-parser.add_argument('--nz', type=int, default=50, help='length of latent vector')
-parser.add_argument('--lr', type=float, default=0.017, help='learning rate')
-parser.add_argument('--beta1', type=float, default=0.8, help='Adam parameter beta1')
-parser.add_argument('--beta2', type=float, default=0.59, help='Adam parameter beta2')
-parser.add_argument('--c', type=int, default=0, help='Class to optimize for')
-parser.add_argument('--run_id', type=int, default=0, help='id for which optimization run')
-opt = parser.parse_args()
 
 
 '''
@@ -72,13 +57,10 @@ class SequenceOptimizer():
 
     def optimize(self, opt_z, c, num_iters, lr, verbose=False, track=False):
         opt_z = opt_z.cuda().requires_grad_()
-        # opt_z = opt_z.requires_grad_()
 
         ###self.loss = []
         if verbose:
-            #start = self.G(opt_z).cpu().detach().numpy().squeeze().transpose()
             start = self.G(opt_z).cpu().detach().numpy().squeeze()
-            #start = self.G(opt_z).detach().numpy().squeeze()
             print("Starting seq: " + utils.one_hot_to_seq(start))
 
         optimizer = optim.Adam([opt_z], lr=lr, betas=(opt.beta1, opt.beta2))
@@ -261,17 +243,44 @@ class SequenceOptimizer():
         np.save(path / "initial_zs.npy", self.initial_zs)
 
 
-if __name__ == "__main__":
-    SO = SequenceOptimizer()
+class SequenceTuner:
+    def __init__(self,
+                 generator,
+                 classifier,
+                 optimizer,
+                 optimizer_params,
+                 device):
+        self.generator = generator
+        self.classifier = classifier
+        self.optimizer = optimizer
+        self.optimizer_params = optimizer_params
+        self.device = device
 
-    for component in range(0, 16):  # all 16 components
-        SO.sample_seqs(
-            1000,               # num seqs to optimize
-            component,          # component to optimize for
-            2000,               # num optimization iterations
-            lr=opt.lr,          # learning rate
-            verbose=True,       # print stats about optimization process
-            use_fixed_zs=True,  # use fixed initial seeds
-            track=True          # track all seq data during optimization
+    def zero_grads(self):
+        self.generator.zero_grad()
+        self.classifier.zero_grad()
+        self.optimizer.zero_grad()
+
+    def optimize(self, opt_z, target_class, iters):
+        opt_z = opt_z.to(self.device).requires_grad_()
+
+        self.optimizer = self.optimizer([opt_z], **self.optimizer_params)
+        h = opt_z.register_hook(
+            lambda grad: grad + torch.zeros_like(grad).normal_(0, 1e-4)
         )
-        SO.save(component)
+
+        for i in range(iters):
+            self.zero_grads()
+            seq = self.generator(opt_z).transpose(2, 3).view(-1, 4, 100)
+            pred = self.classifier(seq).squeeze()
+            loss = -(pred[target_class])
+            loss.backward()
+            optimizer.step()
+
+            print(f'Iter: {i}\t Loss: {loss}')
+
+        one_hot = seq.cpu().detach().numpy().squeeze().transpose()
+        opt_z = opt_z.cpu().detach().numpy()
+
+        return opt_z, one_hot
+
