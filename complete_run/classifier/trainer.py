@@ -1,6 +1,7 @@
 from itertools import product
 import pandas as pd
 import time
+import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 
@@ -73,6 +74,18 @@ class ClassifierTrainer:
                                    val_dataloader=self.dataloaders.validation,
                                    criterion=self.criterion,
                                    epoch_time=elapsed)
+
+    def plot(self, figure_dir):
+        evaluator = Evaluator(self.collector)
+        evaluator.plot_loss_and_stats('loss.png', figure_dir)
+        evaluator.plot_confusion('confusion.png',
+                                 figure_dir,
+                                 VALIDATION,
+                                 normalize='true')
+
+    def save(self, filename, model_dir):
+        torch.save(self.model.state_dict(), model_dir + filename)
+
 
 class HyperParameterSearch:
     def __init__(self,
