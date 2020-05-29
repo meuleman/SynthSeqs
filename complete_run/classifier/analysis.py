@@ -63,7 +63,7 @@ class Collector:
 
             for batch in loaders[label]:
                 seqs, comps = batch
-                seqs = seqs.to(self.device)
+                seqs = seqs.transpose(-2, -1).to(self.device)
                 comps = comps.to(self.device)
                 preds = model(seqs)
 
@@ -190,7 +190,7 @@ class Evaluator:
         plt.savefig(output_dir + filename)
 
     def plot_confusion(self, filename, output_dir, label, normalize=None):
-        _, ax = plt.subplots(figsize=(10, 10))
+        _, ax = plt.subplots(figsize=(15, 15))
         self._plot_confusion(ax, label, normalize)
         plt.savefig(output_dir + filename)
     
@@ -200,3 +200,20 @@ class Evaluator:
         self._plot_confusion(ax2, label, normalize)
         plt.savefig(output_dir + filename)
 
+
+class MotifMatch:
+    def __init__(self, pwm):
+        self.pwm = pwm
+        assert self.pwm.shape[0] == 4, f'PWM has shape {self.pwm.shape}'
+
+    def scan(self, sequences):
+        num_sequences = len(sequences)
+        len_pwm = self.pwm.shape[1]
+        num_strides = len(sequences) - len_pwm + 1
+        out = np.zeros(num_sequences, num_strides)
+
+        for i in range(num_strides):
+            end = i + len_pwm
+            out[:, i] = np.tensordot(sequences[:, :, i:end], self.pwm)
+
+        return out

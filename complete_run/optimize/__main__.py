@@ -1,3 +1,5 @@
+import numpy as np
+import torch
 from torch import device, cuda
 from torch.optim import Adam
 
@@ -12,10 +14,9 @@ if __name__ == '__main__':
     dev = device("cuda" if cuda.is_available() else "cpu") 
 
     generator = snp_generator_2d_temp_2a(100, 320, 11)
-    generator.load_state_dict(torch.load())
+    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator/generator.pth'
+    generator.load_state_dict(torch.load(GENERATOR_PATH, map_location=dev))
     generator.train(False)
-    generator.to(dev)
-
 
     model_params = {           
         'filters': (96, 16),
@@ -25,10 +26,9 @@ if __name__ == '__main__':
     }
  
     classifier = conv_net(**model_params)
-    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier/model.pth'
-    classifier.load_state_dict(torch.load(MODEL_PATH))
+    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier/classifier.pth'
+    classifier.load_state_dict(torch.load(MODEL_PATH, map_location=dev))
     classifier.train(False)
-    classifier.to(dev)
 
     generator.eval()
     classifier.eval()
@@ -45,7 +45,7 @@ if __name__ == '__main__':
                           optimizer_params,
                           dev)
 
-    opt_z = torch.from_numpy(np.random.normal(0, 1, 100))
+    opt_z = torch.from_numpy(np.random.normal(0, 1, 100)).float()
     target_class = 8
     iters = 1000
 

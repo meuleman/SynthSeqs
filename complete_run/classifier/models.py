@@ -158,7 +158,6 @@ class conv_net(nn.Module):
         self.out_length = out_length
 
     def forward(self, x):
-        x = x.transpose(2, 3).squeeze()
         h = self.net(x).view(-1, self.out_length * self.second_layer_filters)
         out = self.fc_net(h)
         return out.squeeze()

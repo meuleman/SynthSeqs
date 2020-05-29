@@ -66,7 +66,7 @@ class DHSDataLoader:
         return np.load(f)
 
     def make_dataset(self, label):
-        xs = self.load(label, SEQUENCES).reshape(-1, 1, SEQUENCE_LENGTH, 4)
+        xs = self.load(label, SEQUENCES)
         ys = self.load(label, COMPONENTS)
         return DHSSequencesDataset(xs, ys)
     

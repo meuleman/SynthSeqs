@@ -9,7 +9,7 @@ def classifier_trainer():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 300 
+    EPOCHS = 1000 
     BATCH_SIZE = 256
     MODEL = conv_net
     DEVICE = dev
@@ -59,7 +59,7 @@ def train_model():
         'filters': (96, 16),
         'pool_size': 5,
         'fully_connected': 100,
-        'drop': 0.55,
+        'drop': 0.6,
     }
 
     trainer.train(model_params, optimizer_params)

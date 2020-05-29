@@ -1,8 +1,3 @@
-import gen_models
-import classifiers
-import data_helper
-import utils
-
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -13,17 +8,6 @@ import argparse
 from pathlib import Path
 
 
-'''
-Generate optimized sequences using pretrained generator and evaluation models.
-Process is as follows:
-    A given number of z input vectors are intialized randomly
-    Each of these z vectors can be mapped to a corresponding one-hot DNA sequence via generator
-    Each of these corresponding sequences can be evaluated by the evaluation model
-    We search for sequences with certain properties by looking for z vectors that map to sequences
-     that are evaluated in a desirable way by the evaluation function
-        Optimization:
-
-'''
 class SequenceOptimizer():
     def __init__(self):
         self.opt_z_arr = None
@@ -255,6 +239,7 @@ class SequenceTuner:
         self.optimizer = optimizer
         self.optimizer_params = optimizer_params
         self.device = device
+        import pdb; pdb.set_trace()
 
     def zero_grads(self):
         self.generator.zero_grad()
@@ -271,11 +256,11 @@ class SequenceTuner:
 
         for i in range(iters):
             self.zero_grads()
-            seq = self.generator(opt_z).transpose(2, 3).view(-1, 4, 100)
+            seq = self.generator(opt_z).transpose(-2, -1).squeeze(1)
             pred = self.classifier(seq).squeeze()
             loss = -(pred[target_class])
             loss.backward()
-            optimizer.step()
+            self.optimizer.step()
 
             print(f'Iter: {i}\t Loss: {loss}')
 

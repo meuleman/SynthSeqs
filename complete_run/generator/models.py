@@ -1,9 +1,8 @@
 # Load pytorch modules
 import torch
 import torch.nn as nn
-import gumbel
 
-from specnorm import SpectralNorm
+from utils.net import gumbel_softmax, SpectralNorm
 
 
 class GaussianNoise(nn.Module):
@@ -41,7 +40,7 @@ class snp_generator_2d(nn.Module):
         h = self.relu2(h)
         h = self.bn2(h)
         h = self.up2(h)
-        output = gumbel.gumbel_softmax(h.squeeze(), 0.75)
+        output = gumbel_softmax(h.squeeze(), 0.75)
         return output
 
 
