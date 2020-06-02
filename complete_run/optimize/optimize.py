@@ -239,7 +239,6 @@ class SequenceTuner:
         self.optimizer = optimizer
         self.optimizer_params = optimizer_params
         self.device = device
-        import pdb; pdb.set_trace()
 
     def zero_grads(self):
         self.generator.zero_grad()

@@ -217,3 +217,4 @@ class MotifMatch:
             out[:, i] = np.tensordot(sequences[:, :, i:end], self.pwm)
 
         return out
+
