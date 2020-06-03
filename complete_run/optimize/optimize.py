@@ -1,5 +1,5 @@
 import torch
-import torch.optim as optim
+from torch.optim import Adam
 import torch.nn as nn
 
 import numpy as np
@@ -231,12 +231,10 @@ class SequenceTuner:
     def __init__(self,
                  generator,
                  classifier,
-                 optimizer,
                  optimizer_params,
                  device):
         self.generator = generator
         self.classifier = classifier
-        self.optimizer = optimizer
         self.optimizer_params = optimizer_params
         self.device = device
 
@@ -248,7 +246,7 @@ class SequenceTuner:
     def optimize(self, opt_z, target_class, iters):
         opt_z = opt_z.to(self.device).requires_grad_()
 
-        self.optimizer = self.optimizer([opt_z], **self.optimizer_params)
+        self.optimizer = Adam([opt_z], **self.optimizer_params)
         h = opt_z.register_hook(
             lambda grad: grad + torch.zeros_like(grad).normal_(0, 1e-4)
         )
@@ -256,12 +254,14 @@ class SequenceTuner:
         for i in range(iters):
             self.zero_grads()
             seq = self.generator(opt_z).transpose(-2, -1).squeeze(1)
-            pred = self.classifier(seq).squeeze()
+
+            # We forward pass up to the fully connected layer
+            # before the final softmax operation.
+            pred = self.classifier.no_softmax_forward(seq).squeeze()
+
             loss = -(pred[target_class])
             loss.backward()
             self.optimizer.step()
-
-            print(f'Iter: {i}\t Loss: {loss}')
 
         one_hot = seq.cpu().detach().numpy().squeeze().transpose()
         opt_z = opt_z.cpu().detach().numpy()
