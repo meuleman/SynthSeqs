@@ -152,12 +152,18 @@ class conv_net(nn.Module):
             nn.Dropout(drop),
             nn.BatchNorm1d(fully_connected),
             nn.Linear(fully_connected, TOTAL_CLASSES),
-            nn.Softmax(dim=1)
         ) 
+        self.softmax = nn.Softmax(dim=1)
         self.second_layer_filters = second_layer_filters
         self.out_length = out_length
 
     def forward(self, x):
         h = self.net(x).view(-1, self.out_length * self.second_layer_filters)
-        out = self.fc_net(h)
-        return out.squeeze()
+        fc_out = self.fc_net(h)
+        softmax = self.softmax(fc_out)
+        return softmax.squeeze()
+
+    def no_softmax_forward(self, x):
+        h = self.net(x).view(-1, self.out_length * self.second_layer_filters)
+        fc_out = self.fc_net(h)
+        return fc_out.squeeze()

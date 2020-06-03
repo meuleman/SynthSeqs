@@ -209,8 +209,8 @@ class MotifMatch:
     def scan(self, sequences):
         num_sequences = len(sequences)
         len_pwm = self.pwm.shape[1]
-        num_strides = len(sequences) - len_pwm + 1
-        out = np.zeros(num_sequences, num_strides)
+        num_strides = sequences.shape[2] - len_pwm + 1
+        out = np.zeros((num_sequences, num_strides))
 
         for i in range(num_strides):
             end = i + len_pwm
