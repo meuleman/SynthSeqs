@@ -1,11 +1,14 @@
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
 import torch
 from torch.optim import Adam
 import torch.nn as nn
-
 import numpy as np
 from itertools import compress
 import argparse
 from pathlib import Path
+
+from utils.seq import one_hot_to_seq
 
 
 class SequenceOptimizer():
@@ -243,14 +246,15 @@ class SequenceTuner:
         self.classifier.zero_grad()
         self.optimizer.zero_grad()
 
-    def optimize(self, opt_z, target_class, iters):
-        opt_z = opt_z.to(self.device).requires_grad_()
+    def optimize(self, opt_z, target_class, iters, save_path):
+        opt_z = torch.from_numpy(opt_z).float().to(self.device).requires_grad_()
 
         self.optimizer = Adam([opt_z], **self.optimizer_params)
         h = opt_z.register_hook(
             lambda grad: grad + torch.zeros_like(grad).normal_(0, 1e-4)
         )
 
+        raw_seqs = []
         for i in range(iters):
             self.zero_grads()
             seq = self.generator(opt_z).transpose(-2, -1).squeeze(1)
@@ -263,8 +267,15 @@ class SequenceTuner:
             loss.backward()
             self.optimizer.step()
 
+            raw_seq = one_hot_to_seq(seq.cpu().detach().numpy().squeeze().transpose())
+            raw_seqs.append(SeqRecord(raw_seq, id=str(i)))
+
+        with open(save_path, 'w') as f:
+            SeqIO.write(raw_seqs, f, 'fasta')
+
         one_hot = seq.cpu().detach().numpy().squeeze().transpose()
         opt_z = opt_z.cpu().detach().numpy()
+        all_preds = -(pred.cpu().detach().numpy())
 
-        return opt_z, one_hot
+        return opt_z, one_hot, loss, all_preds 
 

@@ -167,3 +167,48 @@ class conv_net(nn.Module):
         h = self.net(x).view(-1, self.out_length * self.second_layer_filters)
         fc_out = self.fc_net(h)
         return fc_out.squeeze()
+
+
+
+class conv_net_one_layer(nn.Module):
+    def __init__(self,
+                 filters,
+                 pool_size,
+                 fully_connected,
+                 drop):
+        super(conv_net_one_layer, self).__init__()
+
+        filter_length = 15
+        out_length = 100 // pool_size
+        self.net = nn.Sequential(
+            nn.Conv1d(4,
+                      filters,
+                      kernel_size=filter_length,
+                      stride=1,
+                      padding=filter_length // 2),
+            nn.ReLU(True),
+            nn.BatchNorm1d(filters),
+            nn.Dropout(drop),
+            nn.MaxPool1d(pool_size),
+        )
+        self.fc_net = nn.Sequential(
+            nn.Linear(out_length * filters, fully_connected),
+            nn.ReLU(True),
+            nn.Dropout(drop),
+            nn.BatchNorm1d(fully_connected),
+            nn.Linear(fully_connected, TOTAL_CLASSES),
+        ) 
+        self.softmax = nn.Softmax(dim=1)
+        self.filters = filters 
+        self.out_length = out_length
+
+    def forward(self, x):
+        h = self.net(x).view(-1, self.out_length * self.filters)
+        fc_out = self.fc_net(h)
+        softmax = self.softmax(fc_out)
+        return softmax.squeeze()
+
+    def no_softmax_forward(self, x):
+        h = self.net(x).view(-1, self.out_length * self.filters)
+        fc_out = self.fc_net(h)
+        return fc_out.squeeze()

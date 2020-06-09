@@ -76,3 +76,8 @@ NUM_SEQS_PER_COMPONENT = {
 
 def data_filename(label, kind, model):
     return f"{label}_{kind}_{model}.npy"
+
+# Pytorch model filenames.
+GENERATOR_MODEL_FILE = 'generator.pth'
+DISCRIMINATOR_MODEL_FILE = 'discriminator.pth'
+CLASSIFIER_MODEL_FILE = 'classifier.pth'

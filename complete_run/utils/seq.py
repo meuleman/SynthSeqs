@@ -264,3 +264,4 @@ def make_fixed_zs(nz, num_seqs, path, seed=None):
         np.random.seed(seed)
     zs = np.random.normal(0, 1, (num_seqs, nz))
     np.save(path, zs)
+

@@ -1,7 +1,7 @@
 from torch import cuda, device
 
 from .analysis import Evaluator
-from .models import conv_net
+from .models import conv_net, conv_net_one_layer
 from .trainer import ClassifierTrainer, HyperParameterSearch, ParameterGroup
 
 
@@ -9,9 +9,9 @@ def classifier_trainer():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 300 
+    EPOCHS = 1000 
     BATCH_SIZE = 256
-    MODEL = conv_net
+    MODEL = conv_net_one_layer
     DEVICE = dev
     DATA_DIR = '/home/pbromley/synth-seqs-data/'
     trainer = ClassifierTrainer(EPOCHS,
@@ -32,11 +32,10 @@ def hyperparam_search():
     })
     ### MODEL PARAMS ###
     model_params_group = ParameterGroup({
-        'filters': [(80, 32),
-                    (96, 16)],
+        'filters': [96, 128],
         'pool_size': [5],
         'fully_connected': [100],
-        'drop': [0.5, 0.55],
+        'drop': [0.3, 0.4, 0.5, 0.6],
     })
 
     hyper_param_search = HyperParameterSearch(trainer,
@@ -69,5 +68,6 @@ def train_model():
 
     trainer.plot(FIGURE_DIR)
     trainer.save('classifier.pth', MODEL_DIR)
+
 if __name__ == "__main__":
-    train_model()
+    hyperparam_search()
