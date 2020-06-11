@@ -5,3 +5,5 @@
 .DS_Store
 
 *.fasta
+
+*fimo_out*
