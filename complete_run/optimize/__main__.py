@@ -29,55 +29,63 @@ def optimize(vector_id, target_class):
     generator.load_state_dict(torch.load(GENERATOR_PATH, map_location=dev))
     generator.train(False)
 
-    model_params = {           
-        'filters': (96, 16),
-        'pool_size': 5,
-        'fully_connected': 100,
-        'drop': 0.6,
-    }
- 
-    classifier = conv_net(**model_params).to(dev)
-    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier/classifier.pth'
+#    model_params = {           
+#        'filters': (96, 16),
+#        'pool_size': 5,
+#        'fully_connected': 100,
+#        'drop': 0.6,
+#    }
+# 
+#    classifier = conv_net(**model_params).to(dev)
+#    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier/classifier.pth'
+#    classifier.load_state_dict(torch.load(MODEL_PATH, map_location=dev))
+#    classifier.train(False)
+
+    from .old import snp_generator_2d_temp_2a, tmp
+
+    #generator = snp_generator_2d_temp_2a(50, 320, 11).to(dev)
+    #GENERATOR_PATH = '/home/pbromley/synth-seqs-models/old_generator/no-condition-ms-g.pth'
+    #generator.load_state_dict(torch.load(GENERATOR_PATH, map_location=dev))
+    #generator.train(False)
+
+
+    classifier = tmp(0.2).to(dev)
+    MODEL_PATH = "/home/pbromley/synth-seqs-models/old_classifier/aug.pth"
     classifier.load_state_dict(torch.load(MODEL_PATH, map_location=dev))
     classifier.train(False)
 
-    generator.eval()
+    m1 = list(classifier.children())[0]
+    m2 = list(classifier.children())[-1][:-1]
+
     classifier.eval()
+    m1.eval()
+    m2.eval()
+    generator.eval()
 
 
-    lrs = np.arange(0.0001, 0.05, 0.001)
-    beta1s = np.arange(0.5, 1.0, 0.1)
-    beta2s = np.arange(0.59, 1.0, 0.1)
-    for lr in lrs:
-        for beta1 in beta1s:
-            for beta2 in beta2s:
-                optimizer_params = {
-                    'lr': lr,
-                    'betas': (beta1, beta2)
-                }
+    optimizer_params = {
+        'lr': 0.017,
+        'betas': (0.8, 0.59)
+    }
 
-                tuner = SequenceTuner(generator,
-                                      classifier,
-                                      optimizer_params,
-                                      dev)
+    tuner = SequenceTuner(generator,
+                          classifier,
+                          m1,
+                          m2,
+                          optimizer_params,
+                          dev)
 
-                vector_path = '/home/pbromley/projects/synth_seqs/tuning/initial/vectors.npy'
-                vectors = TuningVectors()
-                opt_z = vectors.load_fixed(vector_path, vector_id) 
-                iters = 4000
-                save_path = f'/home/pbromley/projects/synth_seqs/tuning/optimized/{target_class}/{vector_id}.fasta'
+    vector_path = '/home/pbromley/projects/synth_seqs/tuning/initial/vectors.npy'
+    vectors = TuningVectors()
+    opt_z = vectors.load_fixed(vector_path, vector_id) 
+    iters = 1000
+    save_path = f'/home/pbromley/projects/synth_seqs/tuning/optimized_old/{target_class}/{vector_id}.fasta'
 
 
-                start = time.time()
-                _, _, loss, loss_vector = tuner.optimize(opt_z, target_class, iters, save_path)
-                elapsed = time.time() - start
-                #print(f'ID: {vector_id}, Class: {target_class}, Iters: {iters}, Loss: {loss}, Time: {elapsed}')
-                other_loss = loss_vector[np.delete(np.arange(16), target_class)]
-                other_class_avg = other_loss.mean()
-                other_class_min = other_loss.min()
-                other_class_min_which = loss_vector.argmin()
-                print(f'{lr}_{beta1}_{beta2}\t{loss}\t{other_class_avg}\t{other_class_min}\t{other_class_min_which}\t{elapsed}')
-
+    start = time.time()
+    _, _, loss, loss_vector = tuner.optimize(opt_z, target_class, iters, save_path)
+    elapsed = time.time() - start
+    print(f'ID: {vector_id}, Class: {target_class}, Iters: {iters}, Loss: {loss}, Time: {elapsed}')
 
 
 def initialize_fixed_vectors(num_vectors, len_vectors, path, seed=None):
@@ -88,10 +96,8 @@ if __name__ == '__main__':
     assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
 
     args = int(sys.argv[1])
-    vector_id = args % 1000
-    target_component = args // 1000
+    vector_id = args % 100
+    target_component = args // 100
 
-
-    print('params\tloss\tavg_other\tmin_other\twhich_min\ttime')
     optimize(vector_id, target_component)
 

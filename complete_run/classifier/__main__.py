@@ -9,7 +9,7 @@ def classifier_trainer():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 1000 
+    EPOCHS = 300 
     BATCH_SIZE = 256
     MODEL = conv_net_one_layer
     DEVICE = dev
@@ -33,7 +33,7 @@ def hyperparam_search():
     ### MODEL PARAMS ###
     model_params_group = ParameterGroup({
         'filters': [96, 128],
-        'pool_size': [5],
+        'pool_size': [20, 100],
         'fully_connected': [100],
         'drop': [0.3, 0.4, 0.5, 0.6],
     })
@@ -55,10 +55,10 @@ def train_model():
     }
 
     model_params = {
-        'filters': (96, 16),
-        'pool_size': 5,
+        'filters': 128, 
+        'pool_size': 100,
         'fully_connected': 100,
-        'drop': 0.6,
+        'drop': 0.5,
     }
 
     trainer.train(model_params, optimizer_params)
@@ -70,4 +70,4 @@ def train_model():
     trainer.save('classifier.pth', MODEL_DIR)
 
 if __name__ == "__main__":
-    hyperparam_search()
+    train_model()

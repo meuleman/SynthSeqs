@@ -3,3 +3,5 @@
 
 # Mac OSX folder properties
 .DS_Store
+
+*.fasta

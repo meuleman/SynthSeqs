@@ -234,6 +234,8 @@ class SequenceTuner:
     def __init__(self,
                  generator,
                  classifier,
+                 m1,
+                 m2,
                  optimizer_params,
                  device):
         self.generator = generator
@@ -241,10 +243,16 @@ class SequenceTuner:
         self.optimizer_params = optimizer_params
         self.device = device
 
+        self.m1 = m1
+        self.m2 = m2
+
     def zero_grads(self):
         self.generator.zero_grad()
         self.classifier.zero_grad()
         self.optimizer.zero_grad()
+
+        self.m1.zero_grad()
+        self.m2.zero_grad()
 
     def optimize(self, opt_z, target_class, iters, save_path):
         opt_z = torch.from_numpy(opt_z).float().to(self.device).requires_grad_()
@@ -261,7 +269,10 @@ class SequenceTuner:
 
             # We forward pass up to the fully connected layer
             # before the final softmax operation.
-            pred = self.classifier.no_softmax_forward(seq).squeeze()
+            #pred = self.classifier.no_softmax_forward(seq).squeeze()
+
+            tmp = self.m1(seq).view(-1, 512)
+            pred = self.m2(tmp).squeeze()
 
             loss = -(pred[target_class])
             loss.backward()
@@ -269,6 +280,8 @@ class SequenceTuner:
 
             raw_seq = one_hot_to_seq(seq.cpu().detach().numpy().squeeze().transpose())
             raw_seqs.append(SeqRecord(raw_seq, id=str(i)))
+
+            print(loss)
 
         with open(save_path, 'w') as f:
             SeqIO.write(raw_seqs, f, 'fasta')
