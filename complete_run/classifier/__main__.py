@@ -9,7 +9,7 @@ def classifier_trainer():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 300 
+    EPOCHS = 500
     BATCH_SIZE = 256
     MODEL = conv_net_one_layer
     DEVICE = dev
@@ -32,10 +32,10 @@ def hyperparam_search():
     })
     ### MODEL PARAMS ###
     model_params_group = ParameterGroup({
-        'filters': [96, 128],
-        'pool_size': [20, 100],
+        'filters': [100, 75, 50, 32, 16, 8],
+        'pool_size': [25, 100],
         'fully_connected': [100],
-        'drop': [0.3, 0.4, 0.5, 0.6],
+        'drop': [0.3, 0.4, 0.5],
     })
 
     hyper_param_search = HyperParameterSearch(trainer,
@@ -70,4 +70,14 @@ def train_model():
     trainer.save('classifier.pth', MODEL_DIR)
 
 if __name__ == "__main__":
-    train_model()
+    #model = conv_net_one_layer
+    #model_params = {
+    #    'filters': 96, 
+    #    'pool_size': 100,
+    #    'fully_connected': 100,
+    #    'drop': 0.0,
+    #}
+    #model = model(**model_params)
+    #from utils.net import count_parameters
+    #print(f'Number of model_params for {model_params["filters"]}: {count_parameters(model)}')
+    hyperparam_search()

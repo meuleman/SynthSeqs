@@ -37,7 +37,7 @@ class Collector:
             VALIDATION: [],
         }
 
-        self.predictions_history = {
+        self.predictions = {
             TRAIN: [],
             VALIDATION: [],
         }
@@ -73,10 +73,10 @@ class Collector:
                 all_preds = torch.cat([all_preds, preds.cpu()], dim=0)
             
             self.loss_history[label].append(sum(loss) / len(loss))
-            self.predictions_history[label].append({
+            self.predictions[label] = {
                 TRUES: all_trues.numpy(),
                 PREDS: all_preds.numpy(),
-            })
+            }
         
         if epoch_time:
             self.epoch_times.append(epoch_time)
@@ -99,7 +99,7 @@ class Evaluator:
         self.classes = np.arange(TOTAL_CLASSES)
 
     def _final_clean_preds(self, label):
-        final = self.collector.predictions_history[label][-1]
+        final = self.collector.predictions[label]
         return final[TRUES], final[PREDS].argmax(axis=1)
 
     def _sklearn_metrics(self, metric, label, **kwargs):

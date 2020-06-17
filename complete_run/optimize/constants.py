@@ -1,0 +1,2 @@
+SOFTMAX = 'softmax'
+LOSS = 'loss'
