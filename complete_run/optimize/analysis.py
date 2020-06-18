@@ -14,12 +14,13 @@ class FIMOScans:
             tuned_fastas = Path(self.tuned_dir + str(component)).iterdir()
 
             for f in tuned_fastas: 
-                seqs = SeqIO.parse(f, 'fasta')
+                if not f.is_dir():
+                    seqs = SeqIO.parse(f, 'fasta')
 
-                for seq in seqs:
-                    iteration = int(seq.id)
-                    seq.id = f.name 
-                    seq_hist[iteration].append(seq)
+                    for seq in seqs:
+                        iteration = int(seq.id)
+                        seq.id = f.name 
+                        seq_hist[iteration].append(seq)
 
             for iteration in seq_hist.keys():
                 save_path = f'{fimo_dir}{component}/{iteration}.fasta'
