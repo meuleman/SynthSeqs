@@ -13,7 +13,7 @@ MOTIFS = [
     "GCM1_GCM_1",
     "IRF4_IRF_1",
     "SPI1_ETS_1",
-    "MEF2A_MADS_1",
+    "V_MEF2_02",
     "MSC_bHLH_1",
     "ERG_ETS_2",
     "V_OCT4_01",
@@ -67,24 +67,26 @@ CANONICAL_ORDER = np.array([
 ])
 
 COMPONENT_CLASS_NAMES = [
-    "placenta",
+    "placental_trophoblast",
     "lymphoid",
-    "HSC/myeloid/erythroid",
+    "myeloid_erythroid",
     "cardiac",
     "musculoskeletal",
-    "vascular/endothelial",
-    "embryonic",
-    "neuronal",
+    "vascular_endothelial",
+    "primitive_embryonic",
+    "neural",
     "digestive",
-    "fibroblast1",
-    "fibroblast2",
-    "epithelial/kidney(cancer)",
-    "epithelial",
-    "fetal lung",
-    "fetal kidney",
-    "tissue-invariant",
+    "stromal_a",
+    "stromal_b",
+    "renal_cancer",
+    "cancer_epithelial",
+    "pulmonary_devel",
+    "organ_devel_renal",
+    "tissue_invariant",
 ]
 
+
+# THESE ARE IN NON CANONICAL ORDER
 DHS_COLORS = np.array([
     [195,195,195],
     [187,45,212],
@@ -103,6 +105,7 @@ DHS_COLORS = np.array([
     [255,0,0],
     [8,36,91],
 ]) / 255
+
 
 PATH_TO_MOTIF_MEMES = "/home/pbromley/generative_dhs/memes/new_memes/"
 
@@ -264,4 +267,3 @@ def make_fixed_zs(nz, num_seqs, path, seed=None):
         np.random.seed(seed)
     zs = np.random.normal(0, 1, (num_seqs, nz))
     np.save(path, zs)
-
