@@ -10,3 +10,6 @@ biopython
 
 torch
 torchvision
+
+umap-learn
+seaborn
