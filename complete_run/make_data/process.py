@@ -127,6 +127,8 @@ class DataManager:
         seq_filename = data_filename(label, SEQUENCES, GENERATOR)
         comp_filename = data_filename(label, COMPONENTS, GENERATOR)
         
+        one_hots = one_hots[:, :, [0, 2, 3, 1]]
+
         print(f'Writing generator {label} data.')
         np.save(self.output_path + seq_filename, one_hots)
         np.save(self.output_path + comp_filename, components)
@@ -134,6 +136,8 @@ class DataManager:
     def _write_classifier_data(self, label, one_hots, components, mask):
         seq_filename = data_filename(label, SEQUENCES, CLASSIFIER)
         comp_filename = data_filename(label, COMPONENTS, CLASSIFIER)
+
+        one_hots = one_hots[:, :, [0, 2, 3, 1]]
 
         print(f'Writing classifier {label} data.')
         np.save(self.output_path + seq_filename, one_hots[mask])

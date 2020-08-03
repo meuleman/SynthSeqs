@@ -141,14 +141,14 @@ def create_fixed_inputs(num_total_imgs, nz):
 
 # Assumes no seqs have N, S, etc
 def seq_to_one_hot(seq):
-    order_dict = {'A':0, 'T':1, 'C':2, 'G':3}
+    order_dict = {'A':0, 'T':3, 'C':1, 'G':2}
     x = np.zeros((len(seq), 4))
     for (i, bp) in enumerate(seq):
         x[i, order_dict[bp]] = 1
     return x
 
 def one_hot_to_seq(one_hot):
-    order_dict = {0:'A', 1:'T', 2:'C', 3:'G'}
+    order_dict = {0:'A', 3:'T', 1:'C', 2:'G'}
     seq = ""
     idxs = np.argmax(one_hot, axis=1)
     for elt in idxs:
