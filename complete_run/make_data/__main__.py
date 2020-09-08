@@ -20,7 +20,7 @@ PATH_TO_NMF_LOADINGS = \
     "/home/amuratov/fun/60918/60518_NNDSVD_NC16/" \
     "2018-06-08NC16_NNDSVD_Mixture.csv"
 
-DATA_ROOT = '/home/pbromley/synth-seqs-data/'
+DATA_ROOT = '/home/pbromley/synth-seqs-data-len-200/'
 
 
 def main():

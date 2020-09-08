@@ -1,6 +1,6 @@
 # Mean signal and sequence length cutoffs.
 MEAN_SIGNAL = 0.5
-SEQUENCE_LENGTH = 100
+SEQUENCE_LENGTH = 200
 TOTAL_CLASSES = 16
 
 # Name of sequence column added to full dataframe.

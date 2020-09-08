@@ -1,6 +1,6 @@
 from torch import nn
 
-from utils.constants import TOTAL_CLASSES
+from utils.constants import TOTAL_CLASSES, SEQUENCE_LENGTH
 from utils.net import resnet_block
 
 
@@ -179,7 +179,7 @@ class conv_net_one_layer(nn.Module):
         super(conv_net_one_layer, self).__init__()
 
         filter_length = 15
-        out_length = 100 // pool_size
+        out_length = SEQUENCE_LENGTH // pool_size
         self.net = nn.Sequential(
             nn.Conv1d(4,
                       filters,

@@ -6,7 +6,7 @@
 #SBATCH --output=submit/out/classifier.o
 #SBATCH --error=submit/out/classifier.e
 #SBATCH --gres=gpu:p100
-#SBATCH --partition=gpu1
+#SBATCH --partition=gpu2
 #SBATCH --job-name=classifier
 #
 # ==== Resource Requirements and Limits

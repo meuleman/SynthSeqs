@@ -6,7 +6,7 @@
 #SBATCH --output=submit/out/optimizer.o
 #SBATCH --error=submit/out/optimizer.e
 #SBATCH --gres=gpu:p100
-#SBATCH --partition=gpu1
+#SBATCH --partition=gpu2
 #SBATCH --job-name=optimize
 #
 # ==== Resource Requirements and Limits

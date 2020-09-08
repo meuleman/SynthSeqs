@@ -9,11 +9,11 @@ def classifier_trainer():
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 500
+    EPOCHS = 1000 
     BATCH_SIZE = 256
     MODEL = conv_net_one_layer
     DEVICE = dev
-    DATA_DIR = '/home/pbromley/synth-seqs-data/'
+    DATA_DIR = '/home/pbromley/synth-seqs-data-len-200/'
     trainer = ClassifierTrainer(EPOCHS,
                                 BATCH_SIZE,
                                 MODEL,
@@ -55,16 +55,16 @@ def train_model():
     }
 
     model_params = {
-        'filters': 128, 
-        'pool_size': 100,
+        'filters': 100, 
+        'pool_size': 200,
         'fully_connected': 100,
         'drop': 0.5,
     }
 
     trainer.train(model_params, optimizer_params)
 
-    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/classifier/'
-    MODEL_DIR = '/home/pbromley/synth-seqs-models/classifier/'
+    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/classifier-len-200/'
+    MODEL_DIR = '/home/pbromley/synth-seqs-models/classifier-len-200/'
 
     trainer.plot(FIGURE_DIR)
     trainer.save('classifier.pth', MODEL_DIR)
@@ -80,4 +80,4 @@ if __name__ == "__main__":
     #model = model(**model_params)
     #from utils.net import count_parameters
     #print(f'Number of model_params for {model_params["filters"]}: {count_parameters(model)}')
-    hyperparam_search()
+    train_model() 

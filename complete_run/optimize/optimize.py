@@ -60,11 +60,20 @@ class SequenceTuner:
         raw_seqs = []
         for i in range(iters):
             self.zero_grads()
-            seq = self.generator(opt_z).transpose(-2, -1).squeeze(1)
+
+            # Normalize seed to be unit normal
+            opt_z_norm = (opt_z - opt_z.mean()) / opt_z.std()
+
+            seq = self.generator(opt_z_norm).transpose(-2, -1).squeeze(1)
 
             # We forward pass up to the fully connected layer
             # before the final softmax operation.
             pred = self.classifier.no_softmax_forward(seq).squeeze()
+
+            # Penalize seed if straying from unit normal.
+            #z_mean = torch.abs(opt_z.mean())
+            #z_std = torch.abs(opt_z.std())
+            #penalty = 5 * (z_mean + torch.abs(z_std - 1)) 
 
             loss = -(pred[target_class])
             loss.backward()

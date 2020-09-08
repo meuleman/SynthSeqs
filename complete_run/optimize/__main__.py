@@ -25,19 +25,19 @@ def optimize(vector_id, target_class):
         'transpose_size': 10,
     }
     generator = snp_generator(**generator_params).to(dev)
-    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator/generator.pth'
+    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator-permuted-experiment/generator.pth'
     generator.load_state_dict(torch.load(GENERATOR_PATH, map_location=dev))
     generator.train(False)
 
     model_params = {           
-        'filters': 128,
+        'filters': 100,
         'pool_size': 100,
         'fully_connected': 100,
         'drop': 0.5,
     }
  
     classifier = conv_net_one_layer(**model_params).to(dev)
-    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier/classifier.pth'
+    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier-permuted-experiment/classifier.pth'
     classifier.load_state_dict(torch.load(MODEL_PATH, map_location=dev))
     classifier.train(False)
 
@@ -58,7 +58,7 @@ def optimize(vector_id, target_class):
     vectors = TuningVectors()
     opt_z = vectors.load_fixed(vector_path, vector_id) 
     iters = 10000
-    save_dir = f'/home/pbromley/projects/synth_seqs/tuning/optimization_analysis/{target_class}/'
+    save_dir = f'/home/pbromley/projects/synth_seqs/tuning/permuted_experiment_penalty/{target_class}/'
 
     start = time.time()
     tuner.optimize(opt_z,
@@ -79,8 +79,8 @@ if __name__ == '__main__':
     assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
 
     args = int(sys.argv[1])
-    vector_id = args % 100
-    target_component = args // 100
+    vector_id = args % 1000
+    target_component = args // 1000
 
     optimize(vector_id, target_component)
 

@@ -3,10 +3,10 @@
 # based on Slurm workload manager
 #
 # ==== Job Attributes
-#SBATCH --output=generator.o
-#SBATCH --error=generator.e
+#SBATCH --output=submit/out/generator.o
+#SBATCH --error=submit/out/generator.e
 #SBATCH --gres=gpu:p100
-#SBATCH --partition=gpu1
+#SBATCH --partition=gpu2
 #SBATCH --job-name=gan
 #
 # ==== Resource Requirements and Limits

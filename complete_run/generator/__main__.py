@@ -13,7 +13,7 @@ if __name__ == '__main__':
     GENERATOR = snp_generator
     DISCRIMINATOR = snp_discriminator
     DEVICE = dev
-    DATA_DIR = '/home/pbromley/synth-seqs-data/'
+    DATA_DIR = '/home/pbromley/synth-seqs-data-len-200/'
     trainer = GeneratorTrainer(ITERATIONS,
                                BATCH_SIZE,
                                GENERATOR,
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     discriminator_params = {
         'num_filters': 320,
         'len_filters': 15,
-        'pool_size': 20,
+        'pool_size': 40,
         'fully_connected': 100,
     }
 
@@ -48,8 +48,8 @@ if __name__ == '__main__':
                   optimizer_params_g,
                   optimizer_params_d)
 
-    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/generator/'
-    MODEL_DIR = '/home/pbromley/synth-seqs-models/generator/'
+    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/generator-len-200/'
+    MODEL_DIR = '/home/pbromley/synth-seqs-models/generator-len-200/'
 
     trainer.plot_seqs(40, 'generated_seqs.png', FIGURE_DIR)
     trainer.save(MODEL_DIR)
