@@ -25,7 +25,7 @@ def optimize(vector_id, target_class):
         'transpose_size': 10,
     }
     generator = snp_generator(**generator_params).to(dev)
-    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator/generator.pth'
+    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator-len-200/generator.pth'
     generator.load_state_dict(torch.load(GENERATOR_PATH, map_location=dev))
     generator.train(False)
 
@@ -37,7 +37,7 @@ def optimize(vector_id, target_class):
     }
  
     classifier = conv_net_one_layer(**model_params).to(dev)
-    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier/classifier.pth'
+    MODEL_PATH = '/home/pbromley/synth-seqs-models/classifier-len-200/classifier.pth'
     classifier.load_state_dict(torch.load(MODEL_PATH, map_location=dev))
     classifier.train(False)
 
@@ -54,33 +54,32 @@ def optimize(vector_id, target_class):
                           optimizer_params,
                           dev)
 
-    vector_path = '/home/pbromley/projects/synth_seqs/tuning/initial/vectors.npy'
+    vector_path = '/home/pbromley/projects/synth_seqs/tuning/initial/vectors-len-100.npy'
     vectors = TuningVectors()
-    opt_z = vectors.load_fixed(vector_path, vector_id) 
+    opt_zs = vectors.load_fixed(vector_path, slice(0, vector_id))
     iters = 10000
-    save_dir = f'/home/pbromley/projects/synth_seqs/tuning/optimization_analysis/{target_class}/'
+    save_dir = f'/home/pbromley/projects/synth_seqs/tuning/global_penalty_len200/{target_class}/'
 
     start = time.time()
-    tuner.optimize(opt_z,
-                   target_class,
-                   iters,
-                   save_dir,
-                   vector_id,
-                   collect_train_hist=True)
+    tuner.optimize_multiple(opt_zs,
+                            target_class,
+                            iters,
+                            save_dir) 
+                   
     elapsed = time.time() - start
 
-    tuner.save_training_history(save_dir, vector_id)
+    #tuner.save_training_history(save_dir, vector_id)
 
 def initialize_fixed_vectors(num_vectors, len_vectors, path, seed=None):
     tv = TuningVectors()
     tv.save_fixed(num_vectors, len_vectors, path, seed=seed)
 
 if __name__ == '__main__':
-    assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
+    #assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
 
-    args = int(sys.argv[1])
-    vector_id = args % 100
-    target_component = args // 100
+    c = int(sys.argv[1])
+    #vector_id = args % 1000
+    #target_component = args // 1000
 
-    optimize(vector_id, target_component)
+    optimize(1000, c)
 
