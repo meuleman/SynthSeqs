@@ -25,7 +25,11 @@ def optimize(vector_id_range, target_class, verbose=False):
         'transpose_size': 10,
     }
     generator = snp_generator(**generator_params).to(dev)
+<<<<<<< HEAD
     GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator-len-200-640filters/generator.pth'
+=======
+    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator-len-200/generator.pth'
+>>>>>>> 5577b00d865ab7dce789e138a89d4feb016acb8f
     generator.load_state_dict(torch.load(GENERATOR_PATH, map_location=dev))
     generator.train(False)
 
@@ -56,6 +60,7 @@ def optimize(vector_id_range, target_class, verbose=False):
 
     vector_path = '/home/pbromley/projects/synth_seqs/tuning/initial/vectors-len-100.npy'
     vectors = TuningVectors()
+<<<<<<< HEAD
     opt_zs = vectors.load_fixed(vector_path, slice(*vector_id_range))
     iters = 10000
     save_dir = f'/home/pbromley/projects/synth_seqs/tuning/640filters/{target_class}/'
@@ -72,11 +77,28 @@ def optimize(vector_id_range, target_class, verbose=False):
                    
     elapsed = time.time() - start
 
+=======
+    opt_zs = vectors.load_fixed(vector_path, slice(0, vector_id))
+    iters = 10000
+    save_dir = f'/home/pbromley/projects/synth_seqs/tuning/global_penalty_len200/{target_class}/'
+
+    start = time.time()
+    tuner.optimize_multiple(opt_zs,
+                            target_class,
+                            iters,
+                            save_dir) 
+                   
+    elapsed = time.time() - start
+
+    #tuner.save_training_history(save_dir, vector_id)
+
+>>>>>>> 5577b00d865ab7dce789e138a89d4feb016acb8f
 def initialize_fixed_vectors(num_vectors, len_vectors, path, seed=None):
     tv = TuningVectors()
     tv.save_fixed(num_vectors, len_vectors, path, seed=seed)
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
     args = int(sys.argv[1])
     #c = args // 10
@@ -86,4 +108,13 @@ if __name__ == '__main__':
     c = args
     vector_id_range = (0, 5000)
     optimize(vector_id_range, c, verbose=True)
+=======
+    #assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
+
+    c = int(sys.argv[1])
+    #vector_id = args % 1000
+    #target_component = args // 1000
+
+    optimize(1000, c)
+>>>>>>> 5577b00d865ab7dce789e138a89d4feb016acb8f
 
