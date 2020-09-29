@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from Bio.Seq import Seq
-from Bio.Alphabet import single_letter_alphabet
 
 
 MOTIFS = [
@@ -127,7 +126,7 @@ def one_hot_to_seq(one_hot):
     idxs = np.argmax(one_hot, axis=1)
     for elt in idxs:
         seq += order_dict[elt]
-    return Seq(seq, single_letter_alphabet)
+    return Seq(seq)
 
 def bad_nucleotides(seq):
     for nt in seq:
