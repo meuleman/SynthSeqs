@@ -70,14 +70,5 @@ def train_model():
     trainer.save('classifier.pth', MODEL_DIR)
 
 if __name__ == "__main__":
-    #model = conv_net_one_layer
-    #model_params = {
-    #    'filters': 96, 
-    #    'pool_size': 100,
-    #    'fully_connected': 100,
-    #    'drop': 0.0,
-    #}
-    #model = model(**model_params)
-    #from utils.net import count_parameters
-    #print(f'Number of model_params for {model_params["filters"]}: {count_parameters(model)}')
     train_model() 
+

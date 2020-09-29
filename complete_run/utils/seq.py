@@ -109,32 +109,6 @@ DHS_COLORS = np.array([
 
 PATH_TO_MOTIF_MEMES = "/home/pbromley/generative_dhs/memes/new_memes/"
 
-def initialize_train_hist():
-    train_hist = {}
-    train_hist['d_loss'] = []
-    train_hist['g_loss'] = []
-    train_hist['epoch_time'] = []
-    train_hist['total_time'] = []
-    return train_hist
-
-def update_train_hist(train_hist, d_loss, g_loss):
-    train_hist['d_loss'].append(d_loss.item())
-    train_hist['g_loss'].append(g_loss.item())
-    return train_hist
-
-def plot_loss(train_hist, path):
-    x = range(len(train_hist['d_loss']))
-    d_loss_hist = train_hist['d_loss']
-    g_loss_hist = train_hist['g_loss']
-    plt.figure(figsize=(20, 20))
-    plt.plot(x, d_loss_hist, label='d_loss')
-    plt.plot(x, g_loss_hist, label='g_loss')
-    plt.xlabel('Iterations')
-    plt.ylabel('Loss')
-    plt.legend(loc=4)
-    plt.savefig(path)
-    plt.close()
-
 def create_fixed_inputs(num_total_imgs, nz):
     fixed_noise = torch.Tensor(num_total_imgs, nz).normal_(0, 1).to("cuda")
     return fixed_noise
@@ -209,61 +183,3 @@ def save_imgs(G, bs, f_noise, it, path, one_dim=False):
     plt.close()
     G.train(True)
 
-def get_motif(comp):
-    return MOTIFS[np.where(CANONICAL_ORDER == (comp+1))[0][0]]
-
-def get_motif_from_comp(comp, ext=True):
-    motif = get_motif(comp)
-    return motif + ".txt" if ext else motif
-
-def get_motif_mat(motif):
-    return np.loadtxt(PATH_TO_MOTIF_MEMES + motif)[:, np.array([0, 3, 1, 2])]
-
-
-class MotifMatch(nn.Module):
-    def __init__(self, pwm, where=False):
-        super(MotifMatch, self).__init__()
-        self.motif_length = pwm.shape[0]
-        kernel = pwm.reshape(1, 1, self.motif_length, 4)
-        self.kernel = nn.Parameter(data=torch.FloatTensor(kernel), requires_grad=False)
-        self.where = where
-
-    def forward(self, x):
-        seq = one_hot_to_seq(x.numpy().squeeze())
-        rc_seq = seq.reverse_complement()
-        rc_seq_one_hot = torch.FloatTensor(seq_to_one_hot(rc_seq).reshape(1, 1, x.size(2), x.size(3)))
-        conv1 = F.conv2d(x, self.kernel, padding=(self.motif_length-1, 0))
-        conv2 = F.conv2d(rc_seq_one_hot, self.kernel, padding=(self.motif_length-1, 0))
-        conv = torch.cat([conv1, conv2], 2)
-        out = torch.max(conv)
-        if self.where:
-            l = conv1.size(2)
-            idx = torch.argmax(conv)
-            loc = (idx % l)-(self.motif_length-1)
-            if idx >= l:
-                strand = "-"
-                loc = (len(seq)-1) - loc
-            else:
-                strand = "+"
-            return out.squeeze(), loc, strand
-        else:
-            return out.squeeze()
-
-
-def get_motif_scan(one_hots, comp):
-    motif = get_motif_from_comp(comp, ext=True)
-    motif_mat = get_motif_mat(motif)
-
-    motif_match = MotifMatch(motif_mat)
-
-    return np.array([
-        motif_match(torch.FloatTensor(one_hot.reshape(1, 1, 100, 4))).item()
-        for one_hot in one_hots
-    ])
-
-
-def make_fixed_zs(nz, num_seqs, path, seed=None):
-    if seed:
-        np.random.seed(seed)
-    zs = np.random.normal(0, 1, (num_seqs, nz))
-    np.save(path, zs)

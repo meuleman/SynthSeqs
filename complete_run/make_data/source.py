@@ -25,7 +25,8 @@ class DataSource:
 
 
 class DHSAnnotations(DataSource):
-
+    """Object for quickly loading DHS annotations and relevant columns.
+    """
     @classmethod
     def from_path(cls, path):
         df = pd.read_csv(path, sep='\t')
@@ -42,7 +43,8 @@ class DHSAnnotations(DataSource):
 
 
 class NMFLoadings(DataSource):
-
+    """Object for quickly loading NMF loading data.
+    """
     @classmethod
     def from_path(cls, path):
         df = pd.read_csv(path, sep='\t', index_col=0)
@@ -55,7 +57,8 @@ class NMFLoadings(DataSource):
 
 
 class ReferenceGenome(DataSource):
-
+    """Object for quickly loading and querying the reference genome.
+    """
     @classmethod
     def from_path(cls, path):
         genome_dict = {

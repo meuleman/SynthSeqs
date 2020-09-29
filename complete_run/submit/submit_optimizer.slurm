@@ -12,7 +12,7 @@
 # ==== Resource Requirements and Limits
 #SBATCH --ntasks=1
 #SBATCH --time=72:00:00
-#SBATCH --mem-per-cpu=1GB
+#SBATCH --mem-per-cpu=4GB
 #SBATCH --cpus-per-task=1
 #
 # ==== Standard Environment

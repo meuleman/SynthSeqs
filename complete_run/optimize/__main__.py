@@ -15,23 +15,23 @@ from .vectors import TuningVectors
 from generator.models import snp_generator
 from classifier.models import conv_net, conv_net_one_layer
 
-def optimize(vector_id, target_class):
+def optimize(vector_id_range, target_class, verbose=False):
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     generator_params = {
         'nz': NZ,
-        'num_filters': 320,
+        'num_filters': 640,
         'len_filters': 15,
         'transpose_size': 10,
     }
     generator = snp_generator(**generator_params).to(dev)
-    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator-len-200/generator.pth'
+    GENERATOR_PATH = '/home/pbromley/synth-seqs-models/generator-len-200-640filters/generator.pth'
     generator.load_state_dict(torch.load(GENERATOR_PATH, map_location=dev))
     generator.train(False)
 
     model_params = {           
         'filters': 100,
-        'pool_size': 100,
+        'pool_size': 200,
         'fully_connected': 100,
         'drop': 0.5,
     }
@@ -56,30 +56,34 @@ def optimize(vector_id, target_class):
 
     vector_path = '/home/pbromley/projects/synth_seqs/tuning/initial/vectors-len-100.npy'
     vectors = TuningVectors()
-    opt_zs = vectors.load_fixed(vector_path, slice(0, vector_id))
+    opt_zs = vectors.load_fixed(vector_path, slice(*vector_id_range))
     iters = 10000
-    save_dir = f'/home/pbromley/projects/synth_seqs/tuning/global_penalty_len200/{target_class}/'
+    save_dir = f'/home/pbromley/projects/synth_seqs/tuning/640filters/{target_class}/'
+    seed_dir = save_dir + 'seed/'
 
     start = time.time()
-    tuner.optimize_multiple(opt_zs,
-                            target_class,
-                            iters,
-                            save_dir) 
+    tuner.tune(opt_zs,
+               target_class,
+               iters,
+               save_dir,
+               verbose=verbose,
+               seed_dir=seed_dir,
+               vector_id_range=vector_id_range)
                    
     elapsed = time.time() - start
-
-    #tuner.save_training_history(save_dir, vector_id)
 
 def initialize_fixed_vectors(num_vectors, len_vectors, path, seed=None):
     tv = TuningVectors()
     tv.save_fixed(num_vectors, len_vectors, path, seed=seed)
 
 if __name__ == '__main__':
-    #assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
+    assert len(sys.argv) == 2, 'Wrong number of arguments given (exactly 1 required)'
+    args = int(sys.argv[1])
+    #c = args // 10
+    #range_base = (args % 10) * 10000
+    #vector_id_range = (range_base, range_base + 10000)
 
-    c = int(sys.argv[1])
-    #vector_id = args % 1000
-    #target_component = args // 1000
-
-    optimize(1000, c)
+    c = args
+    vector_id_range = (0, 5000)
+    optimize(vector_id_range, c, verbose=True)
 

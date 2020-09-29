@@ -200,21 +200,3 @@ class Evaluator:
         self._plot_confusion(ax2, label, normalize)
         plt.savefig(output_dir + filename)
 
-
-class MotifMatch:
-    def __init__(self, pwm):
-        self.pwm = pwm
-        assert self.pwm.shape[0] == 4, f'PWM has shape {self.pwm.shape}'
-
-    def scan(self, sequences):
-        num_sequences = len(sequences)
-        len_pwm = self.pwm.shape[1]
-        num_strides = sequences.shape[2] - len_pwm + 1
-        out = np.zeros((num_sequences, num_strides))
-
-        for i in range(num_strides):
-            end = i + len_pwm
-            out[:, i] = np.tensordot(sequences[:, :, i:end], self.pwm)
-
-        return out
-

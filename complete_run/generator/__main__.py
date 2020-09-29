@@ -32,14 +32,14 @@ if __name__ == '__main__':
 
     generator_params = {
         'nz': NZ,
-        'num_filters': 320,
+        'num_filters': 640,
         'len_filters': 15,
         'transpose_size': 10,
     }
     discriminator_params = {
-        'num_filters': 320,
+        'num_filters': 640,
         'len_filters': 15,
-        'pool_size': 40,
+        'pool_size': 200,
         'fully_connected': 100,
     }
 
@@ -48,8 +48,8 @@ if __name__ == '__main__':
                   optimizer_params_g,
                   optimizer_params_d)
 
-    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/generator-len-200/'
-    MODEL_DIR = '/home/pbromley/synth-seqs-models/generator-len-200/'
+    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/generator-len-200-640filters/'
+    MODEL_DIR = '/home/pbromley/synth-seqs-models/generator-len-200-640filters/'
 
     trainer.plot_seqs(40, 'generated_seqs.png', FIGURE_DIR)
     trainer.save(MODEL_DIR)

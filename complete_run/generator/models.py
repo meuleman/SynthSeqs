@@ -9,6 +9,8 @@ from utils.constants import (
 
 
 class snp_discriminator(nn.Module):
+    """Spectral normalization discriminator architecture for GAN.
+    """
     def __init__(self,
                  num_filters,
                  len_filters,
@@ -47,6 +49,8 @@ class snp_discriminator(nn.Module):
 
 
 class snp_generator(nn.Module):
+    """Spectral normalization generator architecture for GAN.
+    """
     def __init__(self,
                  nz,
                  num_filters,
