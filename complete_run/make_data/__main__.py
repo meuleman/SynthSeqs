@@ -1,4 +1,15 @@
-from utils.constants import MEAN_SIGNAL, SEQUENCE_LENGTH
+import argparse
+import os
+
+from utils.constants import (
+    DATA_DIR,
+    MEAN_SIGNAL,
+    OUTPUT_DIR,
+    PATH_TO_DHS_MASTERLIST,
+    PATH_TO_NMF_LOADINGS,
+    PATH_TO_REFERENCE_GENOME,
+    SEQUENCE_LENGTH,
+)
 
 from .process import DataManager
 from .source import (
@@ -7,33 +18,47 @@ from .source import (
     ReferenceGenome,
 )
 
-# TODO: Implement CLI, stop hardcoding these.
-PATH_TO_REFERENCE_GENOME = \
-    "/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa"
 
-PATH_TO_DHS_MASTERLIST = \
-    "/home/meuleman/work/projects/ENCODE3/" \
-    "WM20180608_masterlist_FDR0.01_annotations/" \
-    "master_list_stats_WM20180608.txt"
+def init_dirs(output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-PATH_TO_NMF_LOADINGS = \
-    "/home/amuratov/fun/60918/60518_NNDSVD_NC16/" \
-    "2018-06-08NC16_NNDSVD_Mixture.csv"
-
-DATA_ROOT = '/home/pbromley/synth-seqs-data-len-200/'
-
+    if not os.path.exists(output_dir + DATA_DIR):
+        os.makedirs(output_dir + DATA_DIR)
 
 def main():
-    dhs_annotations = DHSAnnotations.from_path(PATH_TO_DHS_MASTERLIST)
-    nmf_loadings = NMFLoadings.from_path(PATH_TO_NMF_LOADINGS)
-    genome = ReferenceGenome.from_path(PATH_TO_REFERENCE_GENOME)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--output',
+                        default=OUTPUT_DIR,
+                        type=str,
+                        help='The path of the output parent directory')
+    parser.add_argument('--ref',
+                        default=PATH_TO_REFERENCE_GENOME,
+                        type=str,
+                        help='The path to the reference genome fasta file')
+    parser.add_argument('--dhs',
+                        default=PATH_TO_DHS_MASTERLIST,
+                        type=str,
+                        help='The path to the dhs annotations file')
+    parser.add_argument('--nmf',
+                        default=PATH_TO_NMF_LOADINGS,
+                        type=str,
+                        help='The path to the nmf loadings file')
+    args = parser.parse_args()
+
+    output_dir = args.output
+    init_dirs(output_dir)
+
+    dhs_annotations = DHSAnnotations.from_path(args.dhs)
+    nmf_loadings = NMFLoadings.from_path(args.nmf)
+    genome = ReferenceGenome.from_path(args.ref)
 
     data_manager = DataManager(dhs_annotations=dhs_annotations,
                                nmf_loadings=nmf_loadings,
                                genome=genome,
                                mean_signal=MEAN_SIGNAL,
                                sequence_length=SEQUENCE_LENGTH,
-                               output_path=DATA_ROOT)
+                               output_path=output_dir + DATA_DIR)
 
     data_manager.write_data()
 

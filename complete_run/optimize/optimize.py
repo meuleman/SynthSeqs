@@ -10,7 +10,12 @@ from pathlib import Path
 
 from utils.seq import one_hot_to_seq
 
-from .constants import LOSS, SOFTMAX
+from .constants import (
+    LOSS,
+    SOFTMAX,
+    STOPPING_ITERATIONS,
+    WRITE_ITERATIONS,
+)
 
 
 class SequenceTuner:
@@ -23,6 +28,7 @@ class SequenceTuner:
         self.classifier = classifier
         self.optimizer_params = optimizer_params
         self.device = device
+        torch.manual_seed(0)
 
     def zero_grads(self):
         self.generator.zero_grad()
@@ -36,6 +42,7 @@ class SequenceTuner:
              save_dir,
              verbose=True,
              seed_dir=None,
+             save_skew=False,
              vector_id_range=None):
 
         opt_zs = (torch.from_numpy(opt_zs)
@@ -62,20 +69,21 @@ class SequenceTuner:
             loss = -(pred[:, target_class].mean())
             loss.backward()
             self.optimizer.step()
-
+                
             seqs = seq.cpu().detach().numpy().squeeze().transpose(0, 2, 1)
 
-            raw_seqs = [
-                SeqRecord(one_hot_to_seq(x), id=str(j))
-                for j, x in zip(range(*vector_id_range), seqs)
-            ]
+            if verbose or (i == STOPPING_ITERATIONS[target_class]) or (i in WRITE_ITERATIONS):
+                raw_seqs = [
+                    SeqRecord(one_hot_to_seq(x), id=str(j))
+                    for j, x in zip(range(*vector_id_range), seqs)
+                ]
 
-            softmax = nn.Softmax(dim=1)
-            softmax_out = softmax(pred)[:, target_class].mean().item()
+                softmax = nn.Softmax(dim=1)
+                softmax_out = softmax(pred)[:, target_class].cpu().detach().numpy()
 
-            if verbose or (i == (iters - 1)) or (i == 0):
                 self.save_training_history(save_dir,
                                            i,
+                                           seqs,
                                            raw_seqs,
                                            loss,
                                            softmax_out,
@@ -86,6 +94,7 @@ class SequenceTuner:
     def save_training_history(self,
                               save_dir,
                               iteration,
+                              seqs,
                               raw_seqs,
                               loss,
                               softmax_out,
@@ -96,69 +105,30 @@ class SequenceTuner:
         with open(save_dir + str(iteration) + '.fasta', 'a') as f:
             SeqIO.write(raw_seqs, f, 'fasta')
 
-<<<<<<< HEAD
         if vector_id_range:
-            tag = '_' + str(vector_id_range[0]) + '_' + str(vector_id_range[1])
+            tag = f'_{vector_id_range[0]}_{vector_id_range[1]}_iter{iteration}'
         else:
             tag = ''
 
         with open(save_dir + f'loss/loss{tag}.txt', 'a') as f:
             f.write(str(loss.item()) + '\n')
-=======
-    def optimize_multiple(self,
-                          opt_zs,
-                          target_class,
-                          iters,
-                          save_dir):
 
-        opt_zs = (torch.from_numpy(opt_zs)
-                       .float()
-                       .to(self.device)
-                       .requires_grad_())
-
-        self.optimizer = Adam([opt_zs], **self.optimizer_params)
-        h = opt_zs.register_hook(
-            lambda grad: grad + torch.zeros_like(grad).normal_(0, 1e-4)
-        )
-
-        for i in range(iters):
-            self.zero_grads()
-
-            # Normalize seed to be unit normal
-            opt_z_norm = (opt_zs - opt_zs.mean()) / opt_zs.std()
-            print(opt_z_norm.mean(), end='\t')
-            print(opt_z_norm.std())
-            seq = self.generator(opt_z_norm).transpose(-2, -1).squeeze(1)
- 
-            # We forward pass up to the fully connected layer
-            # before the final softmax operation.
-            pred = self.classifier.no_softmax_forward(seq).squeeze()
-
-            loss = -(pred[:, target_class].mean())
-            loss.backward()
-            self.optimizer.step()
-
-            seqs = seq.cpu().detach().numpy().squeeze().transpose(0, 2, 1)
-
-            raw_seqs = [SeqRecord(one_hot_to_seq(x), id=str(j)) for j, x in enumerate(seqs)]
-
-            softmax = nn.Softmax(dim=1)
-            softmax_out = softmax(pred)[:, target_class].mean().item()
-        
-            with open(save_dir + str(i) + '.fasta', 'w') as f:
-                SeqIO.write(raw_seqs, f, 'fasta')
-
-            with open(save_dir + 'loss/loss.txt', 'a') as f:
-                f.write(str(loss.item()) + '\n')
-
-            with open(save_dir + 'softmax/softmax.txt', 'a') as f:
-                f.write(str(softmax_out) + '\n')
->>>>>>> 5577b00d865ab7dce789e138a89d4feb016acb8f
-
-        with open(save_dir + f'softmax/softmax{tag}.txt', 'a') as f:
-            f.write(str(softmax_out) + '\n')
+        np.save(save_dir + f'softmax/softmax{tag}.npy', softmax_out)
 
         if seed_dir:
             seed = opt_z_norm.cpu().detach().numpy().squeeze()
-            np.save(seed_dir + str(iteration) + f'seed{tag}.npy', seed)
+            np.save(seed_dir + f'seed{tag}.npy', seed)
 
+        self.save_skew(seqs, save_dir, tag)
+
+    def save_skew(self, seqs, save_dir, tag):
+        seq_int_repr = seqs.argmax(axis=2) 
+        skew = self.calculate_skew(seq_int_repr)
+        with open(save_dir + f'skew/skew{tag}.txt', 'a') as f:
+            f.write(str(skew) + '\n')
+
+    def calculate_skew(self, seq_int_repr):
+        nts, counts = np.unique(seq_int_repr, return_counts=True)
+        at_skew = np.abs(np.log2(counts[0] / counts[3]))
+        cg_skew = np.abs(np.log2(counts[1] / counts[2]))
+        return (at_skew + cg_skew) / 2

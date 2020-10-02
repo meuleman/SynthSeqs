@@ -1,3 +1,5 @@
+from os.path import expanduser
+
 # Mean signal and sequence length cutoffs.
 MEAN_SIGNAL = 0.5
 SEQUENCE_LENGTH = 200
@@ -81,3 +83,23 @@ def data_filename(label, kind, model):
 GENERATOR_MODEL_FILE = 'generator.pth'
 DISCRIMINATOR_MODEL_FILE = 'discriminator.pth'
 CLASSIFIER_MODEL_FILE = 'classifier.pth'
+
+# Output directories
+OUTPUT_DIR = expanduser("~") + '/synth_seqs_output/'
+DATA_DIR = 'data/'
+FIGURE_DIR = 'figures/'
+MODEL_DIR = 'models/'
+
+# Default source file paths
+
+PATH_TO_REFERENCE_GENOME = \
+    "/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa"
+
+PATH_TO_DHS_MASTERLIST = \
+    "/home/meuleman/work/projects/ENCODE3/" \
+    "WM20180608_masterlist_FDR0.01_annotations/" \
+    "master_list_stats_WM20180608.txt"
+
+PATH_TO_NMF_LOADINGS = \
+    "/home/amuratov/fun/60918/60518_NNDSVD_NC16/" \
+    "2018-06-08NC16_NNDSVD_Mixture.csv"

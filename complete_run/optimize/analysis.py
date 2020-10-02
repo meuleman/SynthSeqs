@@ -1,30 +1,46 @@
-from collections import defaultdict
-
+from utils.seq import seq_to_one_hot
 from Bio import SeqIO
-from pathlib import Path
 
+import numpy as np
 
-class FIMOScans:
-    def __init__(self, tuned_dir):
-        self.tuned_dir = tuned_dir
+NT_TO_NUM = {
+    'A': 0,
+    'C': 1,
+    'G': 2,
+    'T': 3,
+}
 
-    def aggregate_seqs(self, components, fimo_dir):
-        for component in components:
-            seq_hist = defaultdict(list)
-            tuned_fastas = Path(self.tuned_dir + str(component)).iterdir()
+NUM_SEQS = 5000
+LEN_SEQS = 200
 
-            for f in tuned_fastas: 
-                if not f.is_dir():
-                    seqs = SeqIO.parse(f, 'fasta')
+def tune_seqs_path(comp, it):
+    return f'../tuning/640filters/{comp}/{it}.fasta'
 
-                    for seq in seqs:
-                        iteration = int(seq.id)
-                        seq.id = f.name 
-                        seq_hist[iteration].append(seq)
+def load_in_seqs(c, i):         
+    seqs = np.zeros((NUM_SEQS, LEN_SEQS))
 
-            for iteration in seq_hist.keys():
-                save_path = f'{fimo_dir}{component}/{iteration}.fasta'
+    fasta_path = tune_seqs_path(c, i)
+    with open(fasta_path, 'r') as file:
+        for record in SeqIO.parse(file, 'fasta'):
+            idx = int(record.id)
+            number_seq = np.array([NT_TO_NUM[nt] for nt in record.seq])
 
-                with open(save_path, 'w') as out:
-                    SeqIO.write(seq_hist[iteration], out, 'fasta')
+            seqs[idx] = number_seq
+                                            
+    return seqs
 
+def calculate_skew(seq_int_repr):
+    nts, counts = np.unique(seq_int_repr, return_counts=True)
+    at_skew = np.abs(np.log2(counts[0] / counts[3]))
+    cg_skew = np.abs(np.log2(counts[1] / counts[2]))
+    return (at_skew + cg_skew) / 2
+
+s = {}
+for c in range(16):
+    skews = []
+    for i in range(5000):
+        seqs = load_in_seqs(c, i)
+        skew = calculate_skew(seqs)
+        skews.append(skew)
+    print(c)
+    s[c] = skews

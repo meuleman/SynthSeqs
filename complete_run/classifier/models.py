@@ -62,7 +62,6 @@ class conv_net(nn.Module):
         return fc_out.squeeze()
 
 
-
 class conv_net_one_layer(nn.Module):
     def __init__(self,
                  filters,

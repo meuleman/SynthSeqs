@@ -23,6 +23,7 @@ from utils.constants import (
     SUMMIT,
     TEST,
     TEST_CHR,
+    TOTAL_CLASSES,
     TOTAL_SIGNAL,
     TRAIN,
     VALIDATION,
@@ -32,7 +33,7 @@ from utils.seq import seq_to_one_hot, bad_nucleotides
 
 
 COMPONENT_COLUMNS_MAP = {
-    c: i for c, i in zip(COMPONENT_COLUMNS, range(16))
+    c: i for c, i in zip(COMPONENT_COLUMNS, range(TOTAL_CLASSES))
 }
 
 

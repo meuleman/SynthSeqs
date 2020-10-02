@@ -1,11 +1,42 @@
+import argparse
+import os
+
 from torch import cuda, device
 
-from .constants import NZ
+from .constants import (
+    NZ,
+    DATA_DIR,
+    FIGURE_DIR,
+    MODEL_DIR,
+    OUTPUT_DIR, 
+)
 from .models import snp_generator, snp_discriminator
 from .trainer import GeneratorTrainer
 
 
+def init_dirs(output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    assert os.path.exists(output_dir + DATA_DIR), 'Data directory is missing'
+     
+    if not os.path.exists(output_dir + FIGURE_DIR):
+        os.makedirs(output_dir + FIGURE_DIR)
+
+    if not os.path.exists(output_dir + MODEL_DIR):
+        os.makedirs(output_dir + MODEL_DIR)
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--output',
+                        default=OUTPUT_DIR,
+                        type=str,
+                        help='The path of the output parent directory')
+    args = parser.parse_args()
+
+    output_dir = args.output
+    init_dirs(output_dir)
+
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     ITERATIONS = 300000
@@ -13,13 +44,12 @@ if __name__ == '__main__':
     GENERATOR = snp_generator
     DISCRIMINATOR = snp_discriminator
     DEVICE = dev
-    DATA_DIR = '/home/pbromley/synth-seqs-data-len-200/'
     trainer = GeneratorTrainer(ITERATIONS,
                                BATCH_SIZE,
                                GENERATOR,
                                DISCRIMINATOR,
                                DEVICE,
-                               DATA_DIR)
+                               output_dir + DATA_DIR)
 
     optimizer_params_g = {
         'lr': 0.0002,
@@ -48,9 +78,6 @@ if __name__ == '__main__':
                   optimizer_params_g,
                   optimizer_params_d)
 
-    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/generator-len-200-640filters/'
-    MODEL_DIR = '/home/pbromley/synth-seqs-models/generator-len-200-640filters/'
-
-    trainer.plot_seqs(40, 'generated_seqs.png', FIGURE_DIR)
-    trainer.save(MODEL_DIR)
+    trainer.plot_seqs(40, 'generated_seqs.png', output_dir + FIGURE_DIR)
+    trainer.save(output_dir + MODEL_DIR)
 
