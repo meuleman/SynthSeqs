@@ -132,9 +132,9 @@ if __name__ == '__main__':
                         type=str,
                         help='The path of the output parent directory')
     parser.add_argument('-v', '--verbose',
-                        default=False,
-                        type=bool,
-                        help='Save data at every iteration in verbose mode')
+                        default=0,
+                        type=int,
+                        help='Save data at every iteration in verbose mode (0 for non-verbose, 1 for verbose)')
     parser.add_argument('-n', '--name',
                         default='tuning_data',
                         type=str,
@@ -142,15 +142,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     comp_and_base = args.comp_and_base
-    print(comp_and_base)
-    print(args.verbose)
 
-    if not args.verbose:
+    if args.verbose == 0:
         c = comp_and_base // 20 
         range_base = (comp_and_base % 20) * 5000 
         vector_id_range = (range_base, range_base + 5000)
     else:
-        c = args
+        c = comp_and_base 
         vector_id_range = (0, 1000)
 
     optimize(vector_id_range, c, args)

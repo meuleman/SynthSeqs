@@ -6,7 +6,7 @@
 #SBATCH --output=submit/out/optimizer.o
 #SBATCH --error=submit/out/optimizer.e
 #SBATCH --gres=gpu:p100
-#SBATCH --partition=gpu2
+#SBATCH --partition=gpu1
 #SBATCH --job-name=optimize
 #
 # ==== Resource Requirements and Limits
@@ -19,4 +19,4 @@
 export TMPDIR=/tmp/slurm.${SLURM_JOBID}
 # ==== end of preamble
 
-python3 -u -m optimize $SLURM_ARRAY_TASK_ID --verbose False --name 'test'
+python3 -u -m optimize $SLURM_ARRAY_TASK_ID --verbose 0 --name 'test'
