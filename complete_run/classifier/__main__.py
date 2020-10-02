@@ -1,29 +1,38 @@
+import argparse
+import os
+
 from torch import cuda, device
+
+from utils.constants import (
+    CLASSIFIER_MODEL_FILE,
+    DATA_DIR,
+    FIGURE_DIR,
+    MODEL_DIR,
+    OUTPUT_DIR, 
+)
 
 from .analysis import Evaluator
 from .models import conv_net, conv_net_one_layer
 from .trainer import ClassifierTrainer, HyperParameterSearch, ParameterGroup
 
 
-def classifier_trainer():
+def classifier_trainer(output_dir):
     dev = device("cuda" if cuda.is_available() else "cpu")
 
     #TODO: This is all temporary
-    EPOCHS = 1000 
+    EPOCHS = 1000
     BATCH_SIZE = 256
     MODEL = conv_net_one_layer
     DEVICE = dev
-    DATA_DIR = '/home/pbromley/synth-seqs-data-len-200/'
     trainer = ClassifierTrainer(EPOCHS,
                                 BATCH_SIZE,
                                 MODEL,
                                 DEVICE,
-                                DATA_DIR)
+                                output_dir + DATA_DIR)
     return trainer
 
-def hyperparam_search():
-    trainer = classifier_trainer()
-    OUTPUT_DIR = '/home/pbromley/synth-seqs-figures/'
+def hyperparam_search(output_dir):
+    trainer = classifier_trainer(output_dir)
 
     ### ALL ###
     optimizer_params_group = ParameterGroup({
@@ -41,13 +50,13 @@ def hyperparam_search():
     hyper_param_search = HyperParameterSearch(trainer,
                                               model_params_group,
                                               optimizer_params_group,
-                                              plot_dir=OUTPUT_DIR)
+                                              plot_dir=output_dir + FIGURE_DIR)
 
     hyper_param_search.search()
-    hyper_param_search.save(OUTPUT_DIR, 'search_results.csv')
+    hyper_param_search.save(output_dir + FIGURE_DIR, 'search_results.csv')
 
-def train_model():
-    trainer = classifier_trainer()
+def train_model(output_dir):
+    trainer = classifier_trainer(output_dir)
 
     optimizer_params = {
         'lr': 0.001,
@@ -63,12 +72,28 @@ def train_model():
 
     trainer.train(model_params, optimizer_params)
 
-    FIGURE_DIR = '/home/pbromley/synth-seqs-figures/classifier-len-200/'
-    MODEL_DIR = '/home/pbromley/synth-seqs-models/classifier-len-200/'
+    trainer.plot(output_dir + FIGURE_DIR)
+    trainer.save(CLASSIFIER_MODEL_FILE, output_dir + MODEL_DIR)
 
-    trainer.plot(FIGURE_DIR)
-    trainer.save('classifier.pth', MODEL_DIR)
+def init_dirs(output_dir):
+    assert os.path.exists(output_dir + DATA_DIR), 'Data directory is missing'
+     
+    if not os.path.exists(output_dir + FIGURE_DIR):
+        os.makedirs(output_dir + FIGURE_DIR)
+
+    if not os.path.exists(output_dir + MODEL_DIR):
+        os.makedirs(output_dir + MODEL_DIR)
 
 if __name__ == "__main__":
-    train_model() 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--output',
+                        default=OUTPUT_DIR,
+                        type=str,
+                        help='The path of the output parent directory')
+    args = parser.parse_args()
+
+    output_dir = args.output
+    init_dirs(output_dir)
+
+    train_model(output_dir) 
 

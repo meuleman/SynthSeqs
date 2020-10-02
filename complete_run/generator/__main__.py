@@ -3,21 +3,20 @@ import os
 
 from torch import cuda, device
 
-from .constants import (
-    NZ,
+from utils.constants import (
     DATA_DIR,
     FIGURE_DIR,
     MODEL_DIR,
     OUTPUT_DIR, 
 )
+
+from .constants import NZ
+
 from .models import snp_generator, snp_discriminator
 from .trainer import GeneratorTrainer
 
 
 def init_dirs(output_dir):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
     assert os.path.exists(output_dir + DATA_DIR), 'Data directory is missing'
      
     if not os.path.exists(output_dir + FIGURE_DIR):

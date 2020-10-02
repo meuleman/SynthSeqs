@@ -89,6 +89,15 @@ OUTPUT_DIR = expanduser("~") + '/synth_seqs_output/'
 DATA_DIR = 'data/'
 FIGURE_DIR = 'figures/'
 MODEL_DIR = 'models/'
+TUNING_DIR = 'tuning/'
+VECTOR_DIR = 'vectors/'
+VECTOR_FILE = 'vectors.npy'
+
+# Tuning directory schema
+#   Within the TUNING_DIR directory:
+#      One directory for each component
+#         Each dir holds a loss/, softmax/, seed/, skew/ file
+#         as well as a count_hits.sh script
 
 # Default source file paths
 

@@ -40,9 +40,7 @@ class SequenceTuner:
              target_class,
              iters,
              save_dir,
-             verbose=True,
-             seed_dir=None,
-             save_skew=False,
+             verbose,
              vector_id_range=None):
 
         opt_zs = (torch.from_numpy(opt_zs)
@@ -88,7 +86,6 @@ class SequenceTuner:
                                            loss,
                                            softmax_out,
                                            opt_z_norm,
-                                           seed_dir,
                                            vector_id_range)
         
     def save_training_history(self,
@@ -99,7 +96,6 @@ class SequenceTuner:
                               loss,
                               softmax_out,
                               opt_z_norm,
-                              seed_dir,
                               vector_id_range):
 
         with open(save_dir + str(iteration) + '.fasta', 'a') as f:
@@ -115,9 +111,8 @@ class SequenceTuner:
 
         np.save(save_dir + f'softmax/softmax{tag}.npy', softmax_out)
 
-        if seed_dir:
-            seed = opt_z_norm.cpu().detach().numpy().squeeze()
-            np.save(seed_dir + f'seed{tag}.npy', seed)
+        seed = opt_z_norm.cpu().detach().numpy().squeeze()
+        np.save(save_dir + f'seed/seed{tag}.npy', seed)
 
         self.save_skew(seqs, save_dir, tag)
 
