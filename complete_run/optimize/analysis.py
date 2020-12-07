@@ -35,12 +35,12 @@ def calculate_skew(seq_int_repr):
     cg_skew = np.abs(np.log2(counts[1] / counts[2]))
     return (at_skew + cg_skew) / 2
 
-s = {}
-for c in range(16):
-    skews = []
-    for i in range(5000):
-        seqs = load_in_seqs(c, i)
-        skew = calculate_skew(seqs)
-        skews.append(skew)
-    print(c)
-    s[c] = skews
+#s = {}
+#for c in range(16):
+#    skews = []
+#    for i in range(5000):
+#        seqs = load_in_seqs(c, i)
+#        skew = calculate_skew(seqs)
+#        skews.append(skew)
+#    print(c)
+#    s[c] = skews
