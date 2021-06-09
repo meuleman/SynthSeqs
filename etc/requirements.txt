@@ -1,0 +1,15 @@
+flake8
+
+numpy
+pandas
+scikit-learn
+matplotlib
+progress
+
+biopython
+
+torch
+torchvision
+
+umap-learn
+seaborn
