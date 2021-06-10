@@ -1,4 +1,13 @@
-### How to set up development environment using `virtualenvwrapper` - PB20200616
+# SynthSeqs: data-driven design of context-specific regulatory elements
+
+This project revolves around a fully data-driven system for designing synthetic regulatory elements.
+We apply a large map of 3.5M+ annotated DNase I Hypersensitive Sites (DHSs, Meuleman et al., Nature 2020) as the basis for a training set to 
+teach a Generative Adversarial Network (GAN) how regulatory elements are encoded in the human genome sequence.
+This approach results in highly variable pools of synthetic sequences, yet never seen before in nature.
+We further apply a supervised adaptation strategy to tune these sequences towards pre-defined cellular contexts of interest.
+
+
+### How to set up the development environment using `virtualenvwrapper`
 
 From a recent overhaul of much of the code in this project, the steps required to run each module are now different and (I'm hoping) more simple.  The general setup procedure is as follows:
 - Load the python3.6 module on the Altius server,
@@ -24,6 +33,7 @@ On the Altius server, run:
 ~$ python3 -m pip install --user virtualenvwrapper
 ```
 to install `virtualenvwrapper` and all of its dependencies locally without needing sudo privileges.  `virtualenvwrapper` will be installed in `/home/{USER}/.local/bin`.
+Make sure to execute `source /home/{USER}/.local/bin/virtualenvwrapper.sh` and add this command to your shell login script too (e.g. ~/.bash_profile).
 
 #### Create a new python3.6 `synth-seqs` virtualenv
 
