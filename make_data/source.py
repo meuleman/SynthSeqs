@@ -29,7 +29,7 @@ class DHSAnnotations(DataSource):
     """
     @classmethod
     def from_path(cls, path):
-        df = pd.read_csv(path, sep='\t')
+        df = pd.read_csv(path, sep='\t', dtype={'identifier': str})
         return cls(df, path)
 
     @classmethod
