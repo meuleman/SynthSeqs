@@ -11,8 +11,8 @@ from utils.constants import (
     SEQUENCE_LENGTH,
 )
 
-from .process import DataManager
-from .source import (
+from make_data.process import DataManager
+from make_data.source import (
     DHSAnnotations,
     NMFLoadings,
     ReferenceGenome,

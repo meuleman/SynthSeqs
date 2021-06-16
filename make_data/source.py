@@ -47,7 +47,9 @@ class NMFLoadings(DataSource):
     """
     @classmethod
     def from_path(cls, path):
-        df = pd.read_csv(path, sep='\t', index_col=0)
+        df = pd.read_csv(path, sep='\t')
+        df.set_index([df.columns.values[0]], inplace=True)
+        df.index.names = [None]
         return cls(df, path)
 
     @classmethod
