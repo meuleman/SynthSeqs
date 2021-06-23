@@ -19,4 +19,4 @@
 export TMPDIR=/tmp/slurm.${SLURM_JOBID}
 # ==== end of preamble
 
-python3 -u -m optimize -n 10 -c 9 --seed 42 -i 20 --save_interval 2 --run_name "test" 
+python3 -u -m optimize -n 10 -c 9 --seed 42 -i 1000 --save_interval 50 --run_name "test" 

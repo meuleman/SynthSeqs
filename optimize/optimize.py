@@ -1,12 +1,13 @@
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
-import torch
-from torch.optim import Adam
-import torch.nn as nn
 import numpy as np
 from itertools import compress
 import argparse
+import pandas as pd
 from pathlib import Path
+import torch
+from torch.optim import Adam
+import torch.nn as nn
 
 from utils.constants import TOTAL_CLASSES
 from utils.seq import one_hot_to_seq
@@ -91,7 +92,7 @@ class SequenceTuner:
     def save_sequences(self, seq_records, iteration, save_dir):
         file = save_dir + "sequences/" + f'iteration_{iteration}.fasta'
         with open(file, 'w') as f:
-            SeqIO.write(raw_seqs, f, 'fasta')
+            SeqIO.write(seq_records, f, 'fasta')
 
     def _performance_df_columns(self):
         columns = ["seq_id"]
@@ -145,7 +146,7 @@ class SequenceTuner:
         dataframe = pd.DataFrame.from_records(records, columns=columns)
 
         file = save_dir + "performance/" + f'iteration_{iteration}.csv'
-        dataframe.to_csv(file, sep=',')
+        dataframe.to_csv(file, sep=',', index=False)
 
         # with open(save_dir + f'loss/loss{tag}.txt', 'a') as f:
         #     f.write(str(loss.item()) + '\n')
