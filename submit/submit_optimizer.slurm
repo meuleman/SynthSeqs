@@ -19,4 +19,4 @@
 export TMPDIR=/tmp/slurm.${SLURM_JOBID}
 # ==== end of preamble
 
-python3 -u -m optimize $SLURM_ARRAY_TASK_ID --verbose 0 --name 'final' -b 1
+python3 -u -m optimize -n 10 -c 9 --seed 42 -i 20 --save_interval 2 --run_name "test" 

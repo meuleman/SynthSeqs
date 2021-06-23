@@ -16,7 +16,6 @@ from utils.constants import (
     GENERATOR_MODEL_FILE,
     OUTPUT_DIR,
     MODEL_DIR,
-    SEQUENCE_LENGTH,
     TUNING_DIR,
     VECTOR_DIR,
     VECTOR_FILE,
@@ -81,7 +80,7 @@ def optimize(
 
     tuner = SequenceTuner(generator, classifier, optimizer_params, dev)
 
-    opt_zs = generate_tuning_vectors(num_sequences, SEQUENCE_LENGTH, seed=random_seed)
+    opt_zs = generate_tuning_vectors(num_sequences, NZ, seed=random_seed)
     save_dir = output_dir + TUNING_DIR + run_name + f'{target_component}/'
 
     start = time.time()
@@ -98,7 +97,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--component',
                         type=int,
                         help='Regulatory component to tune sequences toward (int, 1-16)')
-    parser.add_argument('--seed', '--random_seed',
+    parser.add_argument('--seed',
                         type=int,
                         help='Random seed to use for generating fixed random tuning seeds (int)')
     parser.add_argument('-i', '--num_iterations',
@@ -120,7 +119,7 @@ if __name__ == '__main__':
     optimize(
         args.num_sequences,
         args.component,
-        args.random_seed,
+        args.seed,
         args.num_iterations,
         args.save_interval,
         args.output_dir,

@@ -83,7 +83,7 @@ class SequenceTuner:
                 self.save_performance_metrics(
                     pred,
                     seq,
-                    opt_z_norm
+                    opt_z_norm,
                     save_dir,
                     i,
                 )
@@ -106,7 +106,7 @@ class SequenceTuner:
 
     def _performance_metrics_records(self, loss, softmax, seqs):
         records = []
-        for i, seq in enumerate(seqs)):
+        for i, seq in enumerate(seqs):
             record = [i]
             # Append loss
             for loss_val in loss[i]:
