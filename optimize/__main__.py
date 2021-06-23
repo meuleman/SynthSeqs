@@ -16,21 +16,36 @@ from utils.constants import (
     GENERATOR_MODEL_FILE,
     OUTPUT_DIR,
     MODEL_DIR,
+    SEQUENCE_LENGTH,
     TUNING_DIR,
     VECTOR_DIR,
     VECTOR_FILE,
 )
 
-from .optimize import SequenceTuner
-from .vectors import TuningVectors
+from optimize.optimize import SequenceTuner
 
 
-def optimize(vector_id_range, target_class, args):
-    output_dir = args.output
-    name = args.name
-    if name[-1] != '/':
-        name += '/'
-    verbose = args.verbose
+def generate_tuning_vectors(num_vectors, len_vectors, seed=None):
+    if seed:
+        # This is now the preferred way to generate reproducible pseudo-random numbers without
+        # affecting the global random state.
+        random_number_generator = np.random.default_rng(seed)
+        return random_number_generator.normal(0, 1, (num_vectors, len_vectors))
+    else:
+        return np.random.normal(0, 1, (num_vectors, len_vectors))
+
+
+def optimize(
+    num_sequences,
+    target_component,
+    random_seed,
+    num_iterations,
+    save_interval,
+    output_dir,
+    run_name,
+):
+    if run_name[-1] != '/':
+        run_name += '/'
 
     dev = device("cuda" if cuda.is_available() else "cpu")
 
@@ -64,64 +79,51 @@ def optimize(vector_id_range, target_class, args):
         'betas': (0.8, 0.59)
     }
 
-    tuner = SequenceTuner(generator,
-                          classifier,
-                          optimizer_params,
-                          dev)
+    tuner = SequenceTuner(generator, classifier, optimizer_params, dev)
 
-    assert os.path.exists(output_dir + VECTOR_DIR), \
-           f'Create fixed tuning seeds and save them to {output_dir + VECTOR_DIR + VECTOR_FILE}'
-
-    vector_path = output_dir + VECTOR_DIR + VECTOR_FILE 
-    vectors = TuningVectors()
-
-    opt_zs = vectors.load_fixed(vector_path, slice(*vector_id_range))
-    iters = 10000
-    save_dir = output_dir + TUNING_DIR + name + f'{target_class}/'
+    opt_zs = generate_tuning_vectors(num_sequences, SEQUENCE_LENGTH, seed=random_seed)
+    save_dir = output_dir + TUNING_DIR + run_name + f'{target_component}/'
 
     start = time.time()
-    tuner.tune(opt_zs,
-               target_class,
-               iters,
-               save_dir,
-               verbose,
-               vector_id_range=vector_id_range)
-                   
+    tuner.tune(opt_zs, target_component, num_iterations, save_interval, save_dir)
+
     elapsed = time.time() - start
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('comp_and_base', 
+    parser.add_argument('-n', '--num_sequences',
                         type=int,
-                        help='Integer encoding component and vector id information')
-    parser.add_argument('-b', '--batch_mode',
+                        help='Total number of sequences to tune (int, 1-5000)')
+    parser.add_argument('-c', '--component',
                         type=int,
-                        default=1,
-                        help='0 for 1000 seqs at a time, 1 for 100k at a time')
-    parser.add_argument('-o', '--output',
+                        help='Regulatory component to tune sequences toward (int, 1-16)')
+    parser.add_argument('--seed', '--random_seed',
+                        type=int,
+                        help='Random seed to use for generating fixed random tuning seeds (int)')
+    parser.add_argument('-i', '--num_iterations',
+                        type=int,
+                        help='Total number of tuning iterations to tune the sequences for (int)')
+    parser.add_argument('--save_interval',
+                        type=int,
+                        help='Regular tuning iteration interval to save sequences (int)')
+    parser.add_argument('-o', '--output_dir',
                         default=OUTPUT_DIR,
                         type=str,
                         help='The path of the output parent directory')
-    parser.add_argument('-v', '--verbose',
-                        default=0,
-                        type=int,
-                        help='Save data at every iteration in verbose mode (0 for non-verbose, 1 for verbose)')
-    parser.add_argument('-n', '--name',
+    parser.add_argument('--run_name',
                         default='tuning_data',
                         type=str,
                         help='Name of the tuning write directory')
     args = parser.parse_args()
 
-    comp_and_base = args.comp_and_base
-
-    if args.batch_mode == 1:
-        c = comp_and_base // 20 
-        range_base = (comp_and_base % 20) * 5000 
-        vector_id_range = (range_base, range_base + 5000)
-    else:
-        c = comp_and_base 
-        vector_id_range = (0, 1000)
-
-    optimize(vector_id_range, c, args)
+    optimize(
+        args.num_sequences,
+        args.component,
+        args.random_seed,
+        args.num_iterations,
+        args.save_interval,
+        args.output_dir,
+        args.run_name,
+    )
 
