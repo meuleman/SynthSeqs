@@ -16,8 +16,8 @@ The general setup procedure is as follows:
 We first create a fresh virtual environment dedicated to synthetic sequences development.  
 This virtual environment will hold all of the dependencies needed to run the various components of the project.  
 ```
-~$ conda create -n SynthSeqs python=3.8
-~$ conda activate SynthSeqs
+$ conda create -n SynthSeqs python=3.8
+$ conda activate SynthSeqs
 ```
 The above command creates a new environment named `SynthSeqs` that uses python3.8, and subsequently activates it.
 After running these commands, you should see the name of your virtualenv at the left of your terminal prompt in parentheses like so:
@@ -26,7 +26,7 @@ After running these commands, you should see the name of your virtualenv at the 
 ```
 This means that the `SynthSeqs` virtualenv is active.  To deactivate the virtualenv, simply run:
 ```
-~$ deactivate
+$ deactivate
 ```
 
 #### Install required python packages in virtualenv
@@ -34,7 +34,7 @@ This means that the `SynthSeqs` virtualenv is active.  To deactivate the virtual
 A running list of python package dependencies lives in `etc/requirements.txt`.  
 Make sure you have your SynthSeqs environment active, and run the following:
 ```
-~$ pip install -r etc/requirements.txt
+$ python -m pip install -r etc/requirements.txt
 ```
 This should install all of the necessary python packages in your virtualenv.
 
@@ -48,7 +48,7 @@ The SynthSeqs code base is organized around several Python modules:
 
 Each module can be run with:
 ```
-~$ python3 -m MODULE ARGS
+$ python3 -m MODULE ARGS
 ```
 Most modules don't actually require arguments.  
 The modules are currently not perfectly set up to be controlled completely by the command line, so most of the tweaking is done in the `__main__.py` of each module.
