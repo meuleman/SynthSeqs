@@ -122,6 +122,9 @@ class SequenceTuner:
     def calculate_skew(seq):
         seq_int_repr = seq.argmax(axis=1)
         nts, counts = np.unique(seq_int_repr, return_counts=True)
+        # TODO: Need to handle the case of e.g. no Ts in a seq (-1 placeholder for now)
+        if len(counts) < 4:
+            return -1
         at_skew = np.abs(np.log2(counts[0] / counts[3]))
         cg_skew = np.abs(np.log2(counts[1] / counts[2]))
         return (at_skew + cg_skew) / 2
