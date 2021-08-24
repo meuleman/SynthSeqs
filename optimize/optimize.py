@@ -100,7 +100,7 @@ class SequenceTuner:
                 )
 
     # @staticmethod
-    # def save_early(input_seeds, random_seed)
+    # def snapshot(input_seeds, random_seed, )
 
     @staticmethod
     def save_input_seeds(seeds, iteration, save_dir):
@@ -175,27 +175,5 @@ class SequenceTuner:
         records = self._performance_metrics_records(tags, loss, softmax_out, seqs)
         dataframe = pd.DataFrame.from_records(records, columns=columns)
 
-        file = save_dir + "performance/" + f'iteration_{iteration}.csv'
+        file = save_dir + "performance/" + f'iteration{iteration}.csv'
         dataframe.to_csv(file, sep=',', index=False)
-
-        # with open(save_dir + f'loss/loss{tag}.txt', 'a') as f:
-        #     f.write(str(loss.item()) + '\n')
-        #
-        # np.save(save_dir + f'softmax/softmax{tag}.npy', softmax_out)
-        #
-        # seed = opt_z_norm.cpu().detach().numpy().squeeze()
-        # np.save(save_dir + f'seed/seed{tag}.npy', seed)
-        #
-        # self.save_skew(seqs, save_dir, tag)
-
-    # def save_skew(self, seqs, save_dir, tag):
-    #     seq_int_repr = seqs.argmax(axis=2)
-    #     skew = self.calculate_skew(seq_int_repr)
-    #     with open(save_dir + f'skew/skew{tag}.txt', 'a') as f:
-    #         f.write(str(skew) + '\n')
-    #
-    # def calculate_skew(self, seq_int_repr):
-    #     nts, counts = np.unique(seq_int_repr, return_counts=True)
-    #     at_skew = np.abs(np.log2(counts[0] / counts[3]))
-    #     cg_skew = np.abs(np.log2(counts[1] / counts[2]))
-    #     return (at_skew + cg_skew) / 2
