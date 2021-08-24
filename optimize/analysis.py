@@ -1,46 +1,27 @@
-from utils.seq import seq_to_one_hot
-from Bio import SeqIO
+import os
 
+from matplotlib import pyplot as plt
 import numpy as np
+import pandas as pd
 
-NT_TO_NUM = {
-    'A': 0,
-    'C': 1,
-    'G': 2,
-    'T': 3,
-}
+from utils.constants import DHS_COLORS
 
-NUM_SEQS = 5000
-LEN_SEQS = 200
 
-def tune_seqs_path(comp, it):
-    return f'../tuning/640filters/{comp}/{it}.fasta'
+def _performance_csvs(tuning_data_dir, component, usecols=None):
+    performance_dir = tuning_data_dir + f"{component}/" + "performance/"
+    for filename in os.listdir(performance_dir):
+        yield pd.read_csv(performance_dir + filename, usecols=usecols)
 
-def load_in_seqs(c, i):         
-    seqs = np.zeros((NUM_SEQS, LEN_SEQS))
 
-    fasta_path = tune_seqs_path(c, i)
-    with open(fasta_path, 'r') as file:
-        for record in SeqIO.parse(file, 'fasta'):
-            idx = int(record.id)
-            number_seq = np.array([NT_TO_NUM[nt] for nt in record.seq])
+def plot_skew_vs_iterations(tuning_data_dir, figure_dir):
+    for component in range(1, 17):
+        data = pd.concat(
+            _performance_csvs(tuning_data_dir, component, usecols=["skew", "iteration"])
+        )
+        mean_skews = data.groupby("iteration")["skew"].mean()
 
-            seqs[idx] = number_seq
-                                            
-    return seqs
+        plt.plot(mean_skews.index, mean_skews.values, c=DHS_COLORS[component-1])
 
-def calculate_skew(seq_int_repr):
-    nts, counts = np.unique(seq_int_repr, return_counts=True)
-    at_skew = np.abs(np.log2(counts[0] / counts[3]))
-    cg_skew = np.abs(np.log2(counts[1] / counts[2]))
-    return (at_skew + cg_skew) / 2
+    plt.savefig(figure_dir + "skew_vs_iteration.pdf")
 
-#s = {}
-#for c in range(16):
-#    skews = []
-#    for i in range(5000):
-#        seqs = load_in_seqs(c, i)
-#        skew = calculate_skew(seqs)
-#        skews.append(skew)
-#    print(c)
-#    s[c] = skews
+

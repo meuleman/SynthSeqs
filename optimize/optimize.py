@@ -131,7 +131,7 @@ class SequenceTuner:
 
     @staticmethod
     def _performance_df_columns():
-        columns = ["tag", "seq_id"]
+        columns = ["tag", "seq_id", "iteration"]
         # Columns for loss value for all components
         for i in range(TOTAL_CLASSES):
             columns.append(f"loss_{i + 1}")
@@ -141,10 +141,10 @@ class SequenceTuner:
         columns.append("skew")
         return columns
 
-    def _performance_metrics_records(self, tags, loss, softmax, seqs):
+    def _performance_metrics_records(self, tags, iteration, loss, softmax, seqs):
         records = []
         for i, seq in enumerate(seqs):
-            record = [tags[i], i]
+            record = [tags[i], i, iteration]
             # Append loss
             for loss_val in loss[i]:
                 record.append(loss_val)
@@ -175,7 +175,7 @@ class SequenceTuner:
         loss = -1 * pred
 
         columns = self._performance_df_columns()
-        records = self._performance_metrics_records(tags, loss, softmax_out, seqs)
+        records = self._performance_metrics_records(tags, iteration, loss, softmax_out, seqs)
         dataframe = pd.DataFrame.from_records(records, columns=columns)
 
         file = save_dir + "performance/" + f'iteration{iteration}.csv'
