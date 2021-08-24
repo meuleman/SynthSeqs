@@ -34,7 +34,7 @@ def generate_tuning_vectors(num_vectors, len_vectors, seed=None):
         return np.random.normal(0, 1, (num_vectors, len_vectors))
 
 
-def optimize(
+def tune(
     num_sequences,
     target_component,
     random_seed,
@@ -73,18 +73,25 @@ def optimize(
     classifier.eval()
     generator.eval()
 
-    optimizer_params = {
+    tuner_params = {
         'lr': 0.017,
         'betas': (0.8, 0.59)
     }
 
-    tuner = SequenceTuner(generator, classifier, optimizer_params, dev)
+    tuner = SequenceTuner(generator, classifier, tuner_params, dev)
 
     opt_zs = generate_tuning_vectors(num_sequences, NZ, seed=random_seed)
     save_dir = output_dir + TUNING_DIR + run_name + f'{target_component}/'
 
     start = time.time()
-    tuner.tune(opt_zs, target_component, num_iterations, save_interval, save_dir)
+    tuner.tune(
+        opt_zs,
+        target_component,
+        num_iterations,
+        save_interval,
+        random_seed,
+        save_dir,
+    )
 
     elapsed = time.time() - start
 
@@ -102,6 +109,7 @@ if __name__ == '__main__':
                         help='Random seed to use for generating fixed random tuning seeds (int)')
     parser.add_argument('-i', '--num_iterations',
                         type=int,
+                        default=10000,
                         help='Total number of tuning iterations to tune the sequences for (int)')
     parser.add_argument('--save_interval',
                         type=int,
@@ -116,7 +124,7 @@ if __name__ == '__main__':
                         help='Name of the tuning write directory')
     args = parser.parse_args()
 
-    optimize(
+    tune(
         args.num_sequences,
         args.component,
         args.seed,
