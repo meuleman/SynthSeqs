@@ -32,7 +32,7 @@ def setup_tuning_dir(output_dir, name):
         comp_dir_name = dir_name + f'{c}/'
         if not os.path.exists(comp_dir_name):
             os.makedirs(comp_dir_name)
-        for label in ['sequences/', 'performance/']:
+        for label in ['sequences/', 'performance/', 'input_seeds']:
             if not os.path.exists(comp_dir_name + label):
                 os.makedirs(comp_dir_name + label)
 

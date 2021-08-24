@@ -81,7 +81,7 @@ class SequenceTuner:
             # TODO: Add logic for stopping criteria
             if i % save_interval == 0:
                 tags = [
-                    self._tag(seq_id, target_component, iteration, random_seed)
+                    self._tag(seq_id, target_component, i, random_seed)
                     for seq_id in range(len(seqs))
                 ]
                 raw_seqs = [
@@ -138,8 +138,7 @@ class SequenceTuner:
         columns.append("skew")
         return columns
 
-    @staticmethod
-    def _performance_metrics_records(tags, loss, softmax, seqs):
+    def _performance_metrics_records(self, tags, loss, softmax, seqs):
         records = []
         for i, seq in enumerate(seqs):
             record = [tags[i], i]
@@ -150,7 +149,6 @@ class SequenceTuner:
             for softmax_val in softmax[i]:
                 record.append(softmax_val)
 
-            # TODO: Per sequence skew function
             skew = self.calculate_skew(seq)
             record.append(skew)
             records.append(tuple(record))
