@@ -1,5 +1,7 @@
 from os.path import expanduser
 
+import numpy as np
+
 # Mean signal and sequence length cutoffs.
 MEAN_SIGNAL = 0.5
 SEQUENCE_LENGTH = 200

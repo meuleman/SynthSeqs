@@ -23,5 +23,5 @@ export TMPDIR=/tmp/slurm.${SLURM_JOBID}
 python3 setup_dirs.py -n "test"
 
 # Generate and optimize sequences for component 9 (cardiac)
-python3 -u -m optimize -n 10 -c 9 --seed 42 -i 1000 --save_interval 50 --run_name "test" 
+python3 -u -m optimize -n 1000 -c $SLURM_ARRAY_TASK_ID --seed 42 -i 1000 --save_interval 1 --run_name "test" 
 
