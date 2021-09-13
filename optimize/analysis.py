@@ -40,6 +40,7 @@ def plot_skew_vs_iterations(tuning_data_dir, figure_dir):
 
 
 def plot_skew_vs_iterations_by_batch_size(tuning_dir, batch_dirs, figure_dir):
+    plt.figure(figsize=(10, 8))
     # batch_dirs should be a list of the names of the dirs with completed tuning runs
     for batch_dir in batch_dirs:
         tuning_data_dir = tuning_dir + batch_dir
@@ -55,6 +56,10 @@ def plot_skew_vs_iterations_by_batch_size(tuning_dir, batch_dirs, figure_dir):
 
             plt.plot(skews.index, skews.values, label=batch_dir)
 
+    plt.legend()
+    plt.title("Skew vs tuning iteration for various batch sizes", fontsize=16)
+    plt.xlabel("Iteration", fontsize=14)
+    plt.ylabel("Skewness", fontsize=14)
     plt.savefig(figure_dir + "skew_vs_iteration_per_batch_component_9.pdf")
 
 
