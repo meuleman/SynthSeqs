@@ -9,7 +9,7 @@ import torch
 from torch.optim import Adam
 import torch.nn as nn
 
-from utils.constants import TOTAL_CLASSES
+from utils.constants import SEQUENCE_LENGTH, TOTAL_CLASSES
 from utils.seq import one_hot_to_seq
 
 from optimize.constants import (
@@ -119,15 +119,18 @@ class SequenceTuner:
             SeqIO.write(seq_records, f, 'fasta')
 
     @staticmethod
-    def calculate_skew(seq):
+    def calculate_counts(seq):
         seq_int_repr = seq.argmax(axis=1)
         nts, counts = np.unique(seq_int_repr, return_counts=True)
-        # TODO: Need to handle the case of e.g. no Ts in a seq (-1 placeholder for now)
-        if len(counts) < 4:
-            return -1
-        at_skew = np.abs(np.log2(counts[0] / counts[3]))
-        cg_skew = np.abs(np.log2(counts[1] / counts[2]))
-        return (at_skew + cg_skew) / 2
+        final_counts = [0, 0, 0, 0]
+        for i in range(4):
+            try:
+                final_counts[nts[i]] = counts[i]
+            except IndexError:
+                continue
+        assert sum(final_counts) == SEQUENCE_LENGTH
+
+        return final_counts
 
     @staticmethod
     def _performance_df_columns():
@@ -138,7 +141,10 @@ class SequenceTuner:
         # Columns for softmax value for all components
         for i in range(TOTAL_CLASSES):
             columns.append(f"softmax_{i + 1}")
-        columns.append("skew")
+        columns.append("a_count")
+        columns.append("c_count")
+        columns.append("g_count")
+        columns.append("t_count")
         return columns
 
     def _performance_metrics_records(self, tags, iteration, loss, softmax, seqs):
@@ -152,8 +158,7 @@ class SequenceTuner:
             for softmax_val in softmax[i]:
                 record.append(softmax_val)
 
-            skew = self.calculate_skew(seq)
-            record.append(skew)
+            record += self.calculate_skew(seq)
             records.append(tuple(record))
 
         return records

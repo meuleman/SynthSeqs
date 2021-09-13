@@ -16,14 +16,26 @@ def _performance_csvs(tuning_data_dir, component, usecols=None):
 def plot_skew_vs_iterations(tuning_data_dir, figure_dir):
     for component in range(1, 17):
         data = pd.concat(
-            _performance_csvs(tuning_data_dir, component)# "iteration"])
+            _performance_csvs(
+                tuning_data_dir,
+                component,
+                usecols=["iteration", "a_count", "c_count", "g_count", "t_count"],
+            )
         )
-        data["iteration"] = [int(x.split("_")[2]) for x in data.tag] 
-        mean_skews = data.groupby("iteration")["skew"].mean()
+        at_skews = np.abs(np.log2(
+            data.groupby("iteration")["a_count"].sum() / data.groupby("iteration")["t_count"].sum()
+        ))
+        cg_skews = np.abs(np.log2(
+            data.groupby("iteration")["c_count"].sum() / data.groupby("iteration")["g_count"].sum()
+        ))
+        skews = (at_skews + cg_skews) / 2
 
-        plt.plot(mean_skews.index, mean_skews.values, c=DHS_COLORS[component-1])
+        plt.plot(skews.index, skews.values, c=DHS_COLORS[component-1])
 
     plt.savefig(figure_dir + "skew_vs_iteration.pdf")
 
 
-plot_skew_vs_iterations("/home/pbromley/synth_seqs_output/tuning/test/", "/home/pbromley/synth_seqs_output/figures/")
+plot_skew_vs_iterations(
+    "/home/pbromley/synth_seqs_output/tuning/test/",
+    "/home/pbromley/synth_seqs_output/figures/",
+)
