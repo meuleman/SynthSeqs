@@ -3,11 +3,11 @@
 # based on Slurm workload manager
 #
 # ==== Job Attributes
-#SBATCH --output=submit/out/optimizer.o
-#SBATCH --error=submit/out/optimizer.e
+#SBATCH --output=submit/out/synth_seqs.o
+#SBATCH --error=submit/out/synth_seqs.e
 #SBATCH --gres=gpu:p100
 #SBATCH --partition=gpu1
-#SBATCH --job-name=optimize
+#SBATCH --job-name=synth_seqs
 #
 # ==== Resource Requirements and Limits
 #SBATCH --ntasks=1
@@ -22,6 +22,5 @@ export TMPDIR=/tmp/slurm.${SLURM_JOBID}
 # Set up output directories
 python3 setup_dirs.py -n $SLURM_ARRAY_TASK_ID 
 
-# Generate and optimize sequences for component 9 (cardiac)
-python3 -u -m optimize -n $SLURM_ARRAY_TASK_ID -c 9 --seed 42 -i 1000 --save_interval 10 --run_name $SLURM_ARRAY_TASK_ID 
-
+# Generate and optimize sequences
+python3 -u -m synth_seqs -n $SLURM_ARRAY_TASK_ID -c 9 --seed 42 -i 1000 --save_interval 10 --run_name $SLURM_ARRAY_TASK_ID

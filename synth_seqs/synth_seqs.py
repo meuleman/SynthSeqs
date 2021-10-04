@@ -12,7 +12,7 @@ import torch.nn as nn
 from utils.constants import SEQUENCE_LENGTH, TOTAL_CLASSES
 from utils.seq import one_hot_to_seq
 
-from optimize.constants import (
+from synth_seqs.constants import (
     LOSS,
     SOFTMAX,
 )

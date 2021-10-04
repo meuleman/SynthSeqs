@@ -21,7 +21,7 @@ from utils.constants import (
     VECTOR_FILE,
 )
 
-from optimize.optimize import SequenceTuner
+from synth_seqs.synth_seqs import SequenceTuner
 
 
 def generate_tuning_vectors(num_vectors, len_vectors, seed=None):
