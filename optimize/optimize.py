@@ -158,7 +158,7 @@ class SequenceTuner:
             for softmax_val in softmax[i]:
                 record.append(softmax_val)
 
-            record += self.calculate_skew(seq)
+            record += self.calculate_counts(seq)
             records.append(tuple(record))
 
         return records
