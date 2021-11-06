@@ -8,6 +8,7 @@ from utils.constants import (
     COMPONENT,
     COMPONENTS,
     COMPONENT_COLUMNS,
+    csv_data_filename,
     data_filename,
     DHS_DATA_COLUMNS,
     DHS_WIDTH,
@@ -149,6 +150,9 @@ class DataManager:
            
             self._write_generator_data(label, one_hots, components)
             self._write_classifier_data(label, one_hots, components, prop_mask)
+            self._save_classifier_df(label, df, prop_mask)
+
+
 
     def _write_generator_data(self, label, one_hots, components):
         seq_filename = data_filename(label, SEQUENCES, GENERATOR)
@@ -165,3 +169,7 @@ class DataManager:
         print(f'Writing classifier {label} data.')
         np.save(self.output_path + seq_filename, one_hots[mask])
         np.save(self.output_path + comp_filename, components[mask])
+
+    def _save_classifier_df(self, label, df, mask):
+        csv_filename = csv_data_filename(label, "all", CLASSIFIER)
+        df[mask].to_csv(self.output_path + csv_filename)
