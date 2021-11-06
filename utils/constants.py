@@ -81,8 +81,10 @@ NUM_SEQS_PER_COMPONENT = {
 def data_filename(label, kind, model):
     return f"{label}_{kind}_{model}.npy"
 
-def csv_data_filename(label, kind, model):
+
+def csv_data_filename(label, kind, model)
     return f"{label}_{kind}_{model}.csv"
+
 
 # Pytorch model filenames.
 GENERATOR_MODEL_FILE = 'generator.pth'
