@@ -1,4 +1,4 @@
-NZ = 100
+NZ = 50
 BATCH_SIZE = 128
 G_ITERS = 1
 D_ITERS = 5

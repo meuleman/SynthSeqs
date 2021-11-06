@@ -8,6 +8,7 @@ from utils.constants import (
     FIGURE_DIR,
     MODEL_DIR,
     OUTPUT_DIR, 
+    SEQUENCE_LENGTH,
 )
 
 from .constants import NZ
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     discriminator_params = {
         'num_filters': 640,
         'len_filters': 15,
-        'pool_size': 200,
+        'pool_size': SEQUENCE_LENGTH,
         'fully_connected': 100,
     }
 

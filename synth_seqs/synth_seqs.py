@@ -89,7 +89,7 @@ class SequenceTuner:
                     for j, x in enumerate(seqs)
                 ]
                 self.save_sequences(raw_seqs, i, save_dir)
-                self.save_input_seeds(opt_z_norm, i, save_dir)
+                #self.save_input_seeds(opt_z_norm, i, save_dir)
                 self.save_performance_metrics(
                     pred,
                     seqs,
@@ -98,9 +98,6 @@ class SequenceTuner:
                     i,
                     save_dir,
                 )
-
-    # @staticmethod
-    # def snapshot(input_seeds, random_seed, )
 
     @staticmethod
     def save_input_seeds(seeds, iteration, save_dir):

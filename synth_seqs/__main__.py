@@ -16,6 +16,7 @@ from utils.constants import (
     GENERATOR_MODEL_FILE,
     OUTPUT_DIR,
     MODEL_DIR,
+    SEQUENCE_LENGTH,
     TUNING_DIR,
     VECTOR_DIR,
     VECTOR_FILE,
@@ -61,7 +62,7 @@ def tune(
 
     model_params = {           
         'filters': 100,
-        'pool_size': 200,
+        'pool_size': SEQUENCE_LENGTH,
         'fully_connected': 100,
         'drop': 0.5,
     }

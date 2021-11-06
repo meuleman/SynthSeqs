@@ -24,7 +24,7 @@ def _calculate_skews(df):
 
 
 def plot_skew_vs_iterations(tuning_data_dir, figure_dir):
-    for component in range(1, 17):
+    for component in range(2, 17):
         data = pd.concat(
             _performance_csvs(
                 tuning_data_dir,
@@ -35,8 +35,9 @@ def plot_skew_vs_iterations(tuning_data_dir, figure_dir):
         skews = _calculate_skews(data)
 
         plt.plot(skews.index, skews.values, c=DHS_COLORS[component-1])
+        plt.axhline(skews.values[0], c='r', linestyle='-')
 
-    plt.savefig(figure_dir + "skew_vs_iteration.pdf")
+    plt.savefig(figure_dir + "skew_vs_iteration_no_comp1.pdf")
 
 
 def plot_skew_vs_iterations_by_batch_size(tuning_dir, batch_dirs, figure_dir):
@@ -63,12 +64,12 @@ def plot_skew_vs_iterations_by_batch_size(tuning_dir, batch_dirs, figure_dir):
     plt.savefig(figure_dir + "skew_vs_iteration_per_batch_component_9.pdf")
 
 
-# plot_skew_vs_iterations(
-#     "/home/pbromley/synth_seqs_output/tuning/test/",
-#     "/home/pbromley/synth_seqs_output/figures/",
-# )
-plot_skew_vs_iterations_by_batch_size(
-    "/home/pbromley/synth_seqs_output/tuning/",
-    ["100/", "500/", "1000/", "2000/"],
+plot_skew_vs_iterations(
+    "/home/pbromley/synth_seqs_output/tuning/mpra/",
     "/home/pbromley/synth_seqs_output/figures/",
 )
+#plot_skew_vs_iterations_by_batch_size(
+#    "/home/pbromley/synth_seqs_output/tuning/",
+#    ["100/", "500/", "1000/", "2000/"],
+#    "/home/pbromley/synth_seqs_output/figures/",
+#)

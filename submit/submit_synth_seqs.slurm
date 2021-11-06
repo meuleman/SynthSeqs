@@ -20,7 +20,7 @@ export TMPDIR=/tmp/slurm.${SLURM_JOBID}
 # ==== end of preamble
 
 # Set up output directories
-python3 setup_dirs.py -n $SLURM_ARRAY_TASK_ID 
+python3 setup_dirs.py -n mpra 
 
 # Generate and optimize sequences
-python3 -u -m synth_seqs -n $SLURM_ARRAY_TASK_ID -c 9 --seed 42 -i 1000 --save_interval 10 --run_name $SLURM_ARRAY_TASK_ID
+python3 -u -m synth_seqs -n 1000 -c $SLURM_ARRAY_TASK_ID --seed 42 -i 10000 --save_interval 10 --run_name mpra

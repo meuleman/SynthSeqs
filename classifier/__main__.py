@@ -9,6 +9,7 @@ from utils.constants import (
     FIGURE_DIR,
     MODEL_DIR,
     OUTPUT_DIR, 
+    SEQUENCE_LENGTH,
 )
 
 from .analysis import Evaluator
@@ -65,7 +66,7 @@ def train_model(output_dir):
 
     model_params = {
         'filters': 100, 
-        'pool_size': 200,
+        'pool_size': SEQUENCE_LENGTH,
         'fully_connected': 100,
         'drop': 0.5,
     }

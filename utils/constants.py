@@ -4,7 +4,7 @@ import numpy as np
 
 # Mean signal and sequence length cutoffs.
 MEAN_SIGNAL = 0.5
-SEQUENCE_LENGTH = 200
+SEQUENCE_LENGTH = 150 
 TOTAL_CLASSES = 16
 
 # Name of sequence column added to full dataframe.
@@ -81,13 +81,16 @@ NUM_SEQS_PER_COMPONENT = {
 def data_filename(label, kind, model):
     return f"{label}_{kind}_{model}.npy"
 
+def csv_data_filename(label, kind, model):
+    return f"{label}_{kind}_{model}.csv"
+
 # Pytorch model filenames.
 GENERATOR_MODEL_FILE = 'generator.pth'
 DISCRIMINATOR_MODEL_FILE = 'discriminator.pth'
 CLASSIFIER_MODEL_FILE = 'classifier.pth'
 
 # Output directories
-OUTPUT_DIR = expanduser("~") + '/synth_seqs_output/'
+OUTPUT_DIR = expanduser("~") + '/synth_seqs_output_150bp/'
 DATA_DIR = 'data/'
 FIGURE_DIR = 'figures/'
 MODEL_DIR = 'models/'
