@@ -5,7 +5,7 @@ import numpy as np
 # Mean signal and sequence length cutoffs.
 MEAN_SIGNAL = 0.5
 SEQUENCE_LENGTH = 200
-TOTAL_CLASSES = 16
+TOTAL_CLASSES = 3
 
 # Name of sequence column added to full dataframe.
 RAW_SEQUENCE = 'raw_sequence'
@@ -34,6 +34,8 @@ DHS_DATA_COLUMNS = [
 # NMF component related columns.
 COMPONENT = 'component'
 PROPORTION = 'proportion'
+HEPG2 = "HepG2"
+K562 = "K562"
 COMPONENT_COLUMNS = [
     'C1',
     'C2',
@@ -82,7 +84,7 @@ def data_filename(label, kind, model):
     return f"{label}_{kind}_{model}.npy"
 
 
-def csv_data_filename(label, kind, model)
+def csv_data_filename(label, kind, model):
     return f"{label}_{kind}_{model}.csv"
 
 
@@ -92,7 +94,7 @@ DISCRIMINATOR_MODEL_FILE = 'discriminator.pth'
 CLASSIFIER_MODEL_FILE = 'classifier.pth'
 
 # Output directories
-OUTPUT_DIR = expanduser("~") + '/synth_seqs_output_150bp/'
+OUTPUT_DIR = expanduser("~") + '/synth_seqs_output_mpra/'
 DATA_DIR = 'data/'
 FIGURE_DIR = 'figures/'
 MODEL_DIR = 'models/'
@@ -119,6 +121,8 @@ PATH_TO_DHS_MASTERLIST = \
 PATH_TO_NMF_LOADINGS = \
     "/home/amuratov/fun/60918/60518_NNDSVD_NC16/" \
     "2018-06-08NC16_NNDSVD_Mixture.csv"
+
+PATH_TO_BIOSAMPLES = "/home/meuleman/K562_HepG2_biosamples_per_each_DHS_WM20211109.txt"
 
 # THESE ARE IN NON CANONICAL ORDER
 DHS_COLORS = np.array([

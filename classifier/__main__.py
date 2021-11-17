@@ -42,10 +42,10 @@ def hyperparam_search(output_dir):
     })
     ### MODEL PARAMS ###
     model_params_group = ParameterGroup({
-        'filters': [100, 75, 50, 32, 16, 8],
-        'pool_size': [25, 100],
-        'fully_connected': [100],
-        'drop': [0.3, 0.4, 0.5],
+        'filters': [64, 32, 16, 8],
+        'pool_size': [200],
+        'fully_connected': [50, 100],
+        'drop': [0.5],
     })
 
     hyper_param_search = HyperParameterSearch(trainer,
@@ -65,9 +65,9 @@ def train_model(output_dir):
     }
 
     model_params = {
-        'filters': 100, 
+        'filters': 32, 
         'pool_size': SEQUENCE_LENGTH,
-        'fully_connected': 100,
+        'fully_connected': 50,
         'drop': 0.5,
     }
 
@@ -97,4 +97,5 @@ if __name__ == "__main__":
     init_dirs(output_dir)
 
     train_model(output_dir) 
+    # hyperparam_search(output_dir) 
 

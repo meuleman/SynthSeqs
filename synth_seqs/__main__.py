@@ -61,9 +61,9 @@ def tune(
     generator.train(False)
 
     model_params = {           
-        'filters': 100,
+        'filters': 32,
         'pool_size': SEQUENCE_LENGTH,
-        'fully_connected': 100,
+        'fully_connected': 50,
         'drop': 0.5,
     }
     classifier = conv_net_one_layer(**model_params).to(dev)
