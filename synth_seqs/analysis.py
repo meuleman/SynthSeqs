@@ -65,8 +65,8 @@ def plot_skew_vs_iterations_by_batch_size(tuning_dir, batch_dirs, figure_dir):
 
 
 plot_skew_vs_iterations(
-    "/home/pbromley/synth_seqs_output/tuning/mpra/",
-    "/home/pbromley/synth_seqs_output/figures/",
+    "/home/pbromley/synth_seqs_output_mpra/tuning/mpra/",
+    "/home/pbromley/synth_seqs_output_mpra/figures/",
 )
 #plot_skew_vs_iterations_by_batch_size(
 #    "/home/pbromley/synth_seqs_output/tuning/",

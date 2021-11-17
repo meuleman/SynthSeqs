@@ -85,3 +85,11 @@ class ReferenceGenome(DataSource):
             f"{chrom} length {len(chrom_sequence)}, requested position {end}."
         )
         return chrom_sequence[start:end]
+
+
+class Biosamples(DataSource):
+    @classmethod
+    def from_path(cls, path):
+        df = pd.read_csv(path, sep='\t')
+        return cls(df, path)
+

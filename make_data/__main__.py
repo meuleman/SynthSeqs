@@ -8,11 +8,13 @@ from utils.constants import (
     PATH_TO_DHS_MASTERLIST,
     PATH_TO_NMF_LOADINGS,
     PATH_TO_REFERENCE_GENOME,
+    PATH_TO_BIOSAMPLES,
     SEQUENCE_LENGTH,
 )
 
 from make_data.process import DataManager
 from make_data.source import (
+    Biosamples,
     DHSAnnotations,
     NMFLoadings,
     ReferenceGenome,
@@ -44,6 +46,10 @@ def main():
                         default=PATH_TO_NMF_LOADINGS,
                         type=str,
                         help='The path to the nmf loadings file')
+    parser.add_argument('--biosamples',
+                        default=PATH_TO_BIOSAMPLES,
+                        type=str,
+                        help='The path to the biosamples data')
     args = parser.parse_args()
 
     output_dir = args.output
@@ -52,13 +58,18 @@ def main():
     dhs_annotations = DHSAnnotations.from_path(args.dhs)
     nmf_loadings = NMFLoadings.from_path(args.nmf)
     genome = ReferenceGenome.from_path(args.ref)
+    biosamples = Biosamples.from_path(args.biosamples)
+    # We do a concat in the DataManager so drop the index
+    biosamples.data.reset_index(drop=True, inplace=True)
 
     data_manager = DataManager(dhs_annotations=dhs_annotations,
                                nmf_loadings=nmf_loadings,
                                genome=genome,
                                mean_signal=MEAN_SIGNAL,
                                sequence_length=SEQUENCE_LENGTH,
-                               output_path=output_dir + DATA_DIR)
+                               output_path=output_dir + DATA_DIR,
+                               use_biosamples=True,
+                               biosamples=biosamples)
 
     data_manager.write_data()
 

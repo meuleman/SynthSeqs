@@ -166,15 +166,17 @@ class Evaluator:
 
         labelsx = [item.get_text() for item in ax.get_xticklabels()]
         labelsy = [item.get_text() for item in ax.get_yticklabels()]
-        labelsx[1:-2] = np.arange(1, 17, 2)
-        labelsy[1:-2] = np.arange(1, 17, 2)
+        # labelsx[1:-2] = np.arange(1, 17, 2)
+        # labelsy[1:-2] = np.arange(1, 17, 2)
+        labelsx[1:-2] = np.array([12, 14])
+        labelsy[1:-2] = np.array([12, 14])
         ax.set_xticklabels(labelsx, fontsize=24)
         ax.set_yticklabels(labelsy, fontsize=24)
         ax.set_title(f'Confusion matrix of {label} predictions', fontsize=40)
         ax.set_xlabel('Predicted label', fontsize=30)
         ax.set_ylabel('True label', fontsize=30)
-        for i in range(16):
-            for j in range(16):
+        for i in range(TOTAL_CLASSES):
+            for j in range(TOTAL_CLASSES):
                 ax.text(j,
                         i,
                         cm[i, j],
