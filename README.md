@@ -44,22 +44,36 @@ The SynthSeqs code base is organized around several Python modules:
 - `make_data` generates and preprocesses the numpy DHS sequence datasets,
 - `generator` trains a GAN on a large set of DHS sequences,
 - `classifier` trains a classifier network on more component-specific and high-confidence DHSs (can also perform hyperparam sweep),
-- `optimize` handles the sequence tuning process.
+- `synth_seqs` the main module - handles the sequence tuning process.
+
+##### The make_data, generator, classifier modules
 
 Each module can be run with:
 ```
-$ python3 -m MODULE ARGS
+$ python3 -m MODULE
 ```
-Most modules don't actually require arguments.  
-The modules are currently not perfectly set up to be controlled completely by the command line, so most of the tweaking is done in the `__main__.py` of each module.
+You can specify a custom output path with the command line arg `--output`, otherwise it will default to storing everything under a directory called `~/synth_seqs_output/`.
 
 To run the modules on the GPU, run:
 ```
 sbatch submit/submit_{MODULE_NAME}.slurm
 ```
 for a given module.  
-`make_data` is the only module that does not have the option to run on the GPU.
 
+##### The synth_seqs module
+
+This module requires datasets and generator / classifier model weights to be stored under the parent output directory (default `~/synth_seqs_output/`). If you ran the make_data, generator and classifier modules previously everything should be setup correctly.
+
+The synth_seqs module provides a CLI to customize the sequence tuning process:
+```
+-n, --num_sequences   the total number of sequences to tune
+-c, --component       the target component to tune sequences towards
+--seed                random seed for generating fixed random tuning input vectors
+-i, --num_iterations  total number of tuning iterations
+--save_interval       the iteration interval at which to output tuning data
+-o, --output_dir      the parent directory for synthseqs results
+--run_name            the parent directory for tuning results for this specific run
+```
 
 <!--
 This is preliminary documentation and development, and a few things that would help clean everything up would be:
