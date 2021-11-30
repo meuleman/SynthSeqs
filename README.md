@@ -58,7 +58,9 @@ To run the modules on the GPU, run:
 ```
 sbatch submit/submit_{MODULE_NAME}.slurm
 ```
-for a given module.  
+for a given module.
+
+Pretrained classifier and GAN models are available in the `pretrained_models` directory.
 
 ##### The synth_seqs module
 
