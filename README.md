@@ -1,4 +1,8 @@
-# SynthSeqs: data-driven design of context-specific regulatory elements
+# SynthSeqs: data-driven design of context-specific regulatory elements - K562 and HepG2
+
+NOTE: This branch modifies the main SynthSeqs branch to generate synthetic regulatory elements for a small subset of the original 16 DHS 
+components, specifically Myeloid/Erythroid and Digestive. We use these two components as semi-proxies for the cell lines K562 and HepG2,
+respectively.
 
 This project revolves around a fully data-driven system for designing synthetic regulatory elements.
 We apply a large map of 3.5M+ annotated DNase I Hypersensitive Sites (DHSs, Meuleman et al., Nature 2020) as the basis for a training set to 
