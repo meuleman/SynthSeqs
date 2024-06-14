@@ -14,7 +14,9 @@ from utils.constants import (
     END,
     GENERATOR,
     HEPG2,
+    HEPG2_COMPONENT,
     K562,
+    K562_COMPONENT,
     NUMSAMPLES,
     NUM_SEQS_PER_COMPONENT,
     PROPORTION,
@@ -42,35 +44,28 @@ class DataManager:
                  mean_signal,
                  sequence_length,
                  output_path,
-                 use_biosamples=False,
-                 biosamples=None):
+                 biosamples):
 
         assert len(dhs_annotations.data) == len(nmf_loadings.data), (
-            f"Number of DHS rows {len(dhs_annotations.data)} not equal to " 
+            f"Number of DHS rows {len(dhs_annotations.data)} not equal to "
             f"number of NMF rows {len(nmf_loadings.data)}."
         )
 
         # Preprocess the raw dhs annotation records, pull the remaining sequences
         # from the reference genome and add helpful columns.
-        df_data = [dhs_annotations.data, nmf_loadings.data]
-        if use_biosamples:
-            assert biosamples
-            assert TOTAL_CLASSES == 3
-            df_data.append(biosamples.data)
-
-        self.use_biosamples = use_biosamples
+        df_data = [dhs_annotations.data, nmf_loadings.data, biosamples.data]
 
         df = pd.concat(df_data, axis=1, sort=False)
         df = df[df[DHS_WIDTH] >= sequence_length]
-        df = df[df[TOTAL_SIGNAL].values/df[NUMSAMPLES].values > mean_signal]
+        df = df[df[TOTAL_SIGNAL].values / df[NUMSAMPLES].values > mean_signal]
 
         df = self.add_sequences_column(df, genome, sequence_length)
 
         df[COMPONENT] = (df[COMPONENT_COLUMNS]
-                        .idxmax(axis=1)
-                        .apply(lambda x: int(x[1:]) - 1))
+                         .idxmax(axis=1)
+                         .apply(lambda x: int(x[1:]) - 1))
         df[PROPORTION] = (
-            df[COMPONENT_COLUMNS].max(axis=1) / df[COMPONENT_COLUMNS].sum(axis=1)
+                df[COMPONENT_COLUMNS].max(axis=1) / df[COMPONENT_COLUMNS].sum(axis=1)
         )
 
         self.df = df
@@ -147,51 +142,41 @@ class DataManager:
             # For each component, rank descending by proportion and make
             # a mask keeping the top N sequences. This subset of sequences
             # will be the classifier data.
-            if not self.use_biosamples:
-                final_mask = (
-                    df.groupby(COMPONENT)[PROPORTION]
-                      .rank(ascending=False, method='first')
-                ) <= NUM_SEQS_PER_COMPONENT[label]
+            # Get corank column for K562 (-1 bc zero indexed)
+            k562_df = df[df["component"] == K562_COMPONENT - 1]
+            k562_df = k562_df[k562_df[HEPG2] > 0]
+            k562_df["proportion_rank"] = k562_df[PROPORTION].rank(ascending=False)
+            k562_df["hepg2_rank"] = k562_df[HEPG2].rank(ascending=False)
+            k562_df["rank"] = ((k562_df["proportion_rank"] + k562_df["hepg2_rank"]) / 2).rank(method="first")
 
-                self._write_generator_data(label, one_hots, components)
-                self._write_classifier_data(label, one_hots, components, final_mask)
-                self._save_classifier_df(label, df, final_mask)
-            else:
-                # Get corank column for component 13 (12 bc zero indexed)
-                comp12_df = df[df["component"] == 12]
-                comp12_df = comp12_df[comp12_df[HEPG2] > 0]
-                comp12_df["proportion_rank"] = comp12_df[PROPORTION].rank(ascending=False)
-                comp12_df["hepg2_rank"] = comp12_df[HEPG2].rank(ascending=False)
-                comp12_df["rank"] = ((comp12_df["proportion_rank"] + comp12_df["hepg2_rank"]) / 2).rank(method="first")
+            # Get corank column for HepG2 (-1 bc zero indexed)
+            hepg2_df = df[df["component"] == HEPG2_COMPONENT - 1]
+            hepg2_df = hepg2_df[hepg2_df[K562] > 0]
+            hepg2_df["proportion_rank"] = hepg2_df[PROPORTION].rank(ascending=False)
+            hepg2_df["k562_rank"] = hepg2_df[K562].rank(ascending=False)
+            hepg2_df["rank"] = ((hepg2_df["proportion_rank"] + hepg2_df["k562_rank"]) / 2).rank(method="first")
 
-                # Get corank column for component 15 (14 bc zero indexed)
-                comp14_df = df[df["component"] == 14]
-                comp14_df = comp14_df[comp14_df[K562] > 0]
-                comp14_df["proportion_rank"] = comp14_df[PROPORTION].rank(ascending=False)
-                comp14_df["k562_rank"] = comp14_df[K562].rank(ascending=False)
-                comp14_df["rank"] = ((comp14_df["proportion_rank"] + comp14_df["k562_rank"]) / 2).rank(method="first")
+            new_df = pd.concat([k562_df, hepg2_df], axis=0, sort=False)
+            new_df = new_df[new_df["rank"] <= NUM_SEQS_PER_COMPONENT[label]]
 
-                new_df = pd.concat([comp12_df, comp14_df], axis=0, sort=False)
-                new_df = new_df[new_df["rank"] <= NUM_SEQS_PER_COMPONENT[label]]
+            restof_df = df[df[K562] == 0]
+            restof_df = restof_df[restof_df[HEPG2] == 0]
+            restof_df["rank"] = restof_df.groupby(COMPONENT)[PROPORTION].rank(ascending=False, method="first")
+            restof_df = restof_df[restof_df["rank"] <= NUM_SEQS_PER_COMPONENT[label] // 16]
+            restof_df[COMPONENT] = -1
 
-                restof_df = df[df[K562] == 0]
-                restof_df = restof_df[restof_df[HEPG2] == 0]
-                restof_df["rank"] = restof_df.groupby(COMPONENT)[PROPORTION].rank(ascending=False, method="first")
-                restof_df = restof_df[restof_df["rank"] <= NUM_SEQS_PER_COMPONENT[label] // 16]
-                restof_df[COMPONENT] = -1
+            final_df = pd.concat([new_df, restof_df], axis=0, sort=False)
+            # Hack to get an array of all trues
+            all_true_mask = final_df[COMPONENT] > -2
 
-                final_df = pd.concat([new_df, restof_df], axis=0, sort=False) 
-                # Hack to get an array of all trues
-                all_true_mask = final_df[COMPONENT] > -2
-                
-                self._write_generator_data(label, one_hots, components)
-                self._write_classifier_data_for_biosamples(label, final_df)
-                self._save_classifier_df(label, final_df, all_true_mask)
-            
+            self._write_generator_data(label, one_hots, components)
+            self._write_classifier_data_for_biosamples(label, final_df)
+            self._save_classifier_df(label, final_df, all_true_mask)
+
     def _write_generator_data(self, label, one_hots, components):
         seq_filename = data_filename(label, SEQUENCES, GENERATOR)
         comp_filename = data_filename(label, COMPONENTS, GENERATOR)
-        
+
         print(f'Writing generator {label} data.')
         np.save(self.output_path + seq_filename, one_hots)
         np.save(self.output_path + comp_filename, components)
@@ -207,9 +192,9 @@ class DataManager:
     def _write_classifier_data_for_biosamples(self, label, df):
         sequences = df[RAW_SEQUENCE].values
         one_hots = np.array(list(map(seq_to_one_hot, sequences)))
-        # Convert labels to 0 and 1, 0 for component 13 and 1 for component 15
-        label_map = {12: 0, 14: 1, -1: 2}
-        components = df[COMPONENT].map(label_map).values 
+        # Convert labels to 0 and 1, 0 for K562, 1 for HepG2, 2 for "other"
+        label_map = {(K562_COMPONENT - 1): 0, (HEPG2_COMPONENT - 1): 1, -1: 2}
+        components = df[COMPONENT].map(label_map).values
 
         seq_filename = data_filename(label, SEQUENCES, CLASSIFIER)
         comp_filename = data_filename(label, COMPONENTS, CLASSIFIER)

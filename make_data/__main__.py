@@ -68,7 +68,6 @@ def main():
                                mean_signal=MEAN_SIGNAL,
                                sequence_length=SEQUENCE_LENGTH,
                                output_path=output_dir + DATA_DIR,
-                               use_biosamples=True,
                                biosamples=biosamples)
 
     data_manager.write_data()

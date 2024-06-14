@@ -19,42 +19,12 @@ from .trainer import ClassifierTrainer, HyperParameterSearch, ParameterGroup
 
 def classifier_trainer(output_dir):
     dev = device("cuda" if cuda.is_available() else "cpu")
-
-    #TODO: This is all temporary
-    EPOCHS = 1000
-    BATCH_SIZE = 256
-    MODEL = conv_net_one_layer
-    DEVICE = dev
-    trainer = ClassifierTrainer(EPOCHS,
-                                BATCH_SIZE,
-                                MODEL,
-                                DEVICE,
-                                output_dir + DATA_DIR)
+    trainer = ClassifierTrainer(epochs=1000,
+                                batch_size=256,
+                                model=conv_net_one_layer,
+                                device=dev,
+                                data_dir=output_dir + DATA_DIR)
     return trainer
-
-def hyperparam_search(output_dir):
-    trainer = classifier_trainer(output_dir)
-
-    ### ALL ###
-    optimizer_params_group = ParameterGroup({
-        'lr': [0.001],
-        'betas': [(0.9, 0.99)],
-    })
-    ### MODEL PARAMS ###
-    model_params_group = ParameterGroup({
-        'filters': [64, 32, 16, 8],
-        'pool_size': [200],
-        'fully_connected': [50, 100],
-        'drop': [0.5],
-    })
-
-    hyper_param_search = HyperParameterSearch(trainer,
-                                              model_params_group,
-                                              optimizer_params_group,
-                                              plot_dir=output_dir + FIGURE_DIR)
-
-    hyper_param_search.search()
-    hyper_param_search.save(output_dir + FIGURE_DIR, 'search_results.csv')
 
 def train_model(output_dir):
     trainer = classifier_trainer(output_dir)
@@ -97,5 +67,3 @@ if __name__ == "__main__":
     init_dirs(output_dir)
 
     train_model(output_dir) 
-    # hyperparam_search(output_dir) 
-

@@ -12,6 +12,8 @@ import torch
 
 from utils.constants import (
     TOTAL_CLASSES,
+    K562_COMPONENT,
+    HEPG2_COMPONENT,
     TRAIN,
     VALIDATION,
 )
@@ -166,10 +168,8 @@ class Evaluator:
 
         labelsx = [item.get_text() for item in ax.get_xticklabels()]
         labelsy = [item.get_text() for item in ax.get_yticklabels()]
-        # labelsx[1:-2] = np.arange(1, 17, 2)
-        # labelsy[1:-2] = np.arange(1, 17, 2)
-        labelsx[1:-2] = np.array([12, 14])
-        labelsy[1:-2] = np.array([12, 14])
+        labelsx[1:-2] = np.array([K562_COMPONENT - 1, HEPG2_COMPONENT - 1, 0])
+        labelsy[1:-2] = np.array([K562_COMPONENT - 1, HEPG2_COMPONENT - 1, 0])
         ax.set_xticklabels(labelsx, fontsize=24)
         ax.set_yticklabels(labelsy, fontsize=24)
         ax.set_title(f'Confusion matrix of {label} predictions', fontsize=40)

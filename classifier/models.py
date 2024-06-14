@@ -70,7 +70,7 @@ class conv_net_one_layer(nn.Module):
                  drop):
         super(conv_net_one_layer, self).__init__()
 
-        filter_length = 15
+        filter_length = FILTER_LENGTH
         out_length = SEQUENCE_LENGTH // pool_size
         self.net = nn.Sequential(
             nn.Conv1d(4,

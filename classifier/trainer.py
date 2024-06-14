@@ -55,7 +55,7 @@ class ClassifierTrainer:
     def train(self, model_params, optimizer_params):
         self.setup(model_params, optimizer_params)
 
-        for epoch in range(self.epochs):
+        for _ in range(self.epochs):
             start = time.time()
             self.model.train()
             for i, batch in enumerate(self.dataloaders.train):

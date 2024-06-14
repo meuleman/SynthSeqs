@@ -2,7 +2,10 @@ from Bio import SeqIO
 import pandas as pd
 
 from utils.constants import DHS_DATA_COLUMNS, REFERENCE_GENOME_FILETYPE
-from utils.exceptions import UnimplementedMethodException
+
+
+class UnimplementedMethodException(Exception):
+    """Exception if someone calls a method that should be overridden."""
 
 
 class DataSource:

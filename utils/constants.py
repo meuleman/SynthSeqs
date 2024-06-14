@@ -7,6 +7,10 @@ MEAN_SIGNAL = 0.5
 SEQUENCE_LENGTH = 200
 TOTAL_CLASSES = 3
 
+# Component class number corresponding to K562 and HepG2 (NOT zero indexed)
+K562_COMPONENT = 13
+HEPG2_COMPONENT = 15
+
 # Name of sequence column added to full dataframe.
 RAW_SEQUENCE = 'raw_sequence'
 
